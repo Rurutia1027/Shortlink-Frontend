@@ -10,7 +10,8 @@ export const getTodayFormatDate = () => {
 }; 
 
 export const getLastWeekFormatDate = () => {
-  const date = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000);
+  const date = new Date();
+  date.setDate(date.getDate() - 6);
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, "0");
   const day = `${date.getDate()}`.padStart(2, "0");
