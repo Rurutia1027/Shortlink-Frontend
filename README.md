@@ -39,7 +39,7 @@ npm run lint
 Create `console-react/.env.local` and set the API base URL:
 
 ```
-NEXT_PUBLIC_API_BASE_URL=/api/short-link/admin/v1
+NEXT_PUBLIC_API_BASE_URL=/api/shortlink/admin/v1
 ```
 
 ## Development
