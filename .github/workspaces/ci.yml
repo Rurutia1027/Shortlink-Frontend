@@ -2,13 +2,7 @@ name: Console React CI
 
 on:
   push:
-    paths:
-      - "console-react/**"
-      - ".github/workflows/ci.yml"
   pull_request:
-    paths:
-      - "console-react/**"
-      - ".github/workflows/ci.yml"
 
 jobs:
   build:
