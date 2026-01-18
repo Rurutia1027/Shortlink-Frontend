@@ -3,11 +3,7 @@ import { getToken, getUsername } from "../auth";
 import { isNotEmpty } from "../utils";
 
 const baseURL =
-  (
-    globalThis as typeof globalThis & {
-      process?: { env?: Record<string, string | undefined> };
-    }
-  ).process?.env?.NEXT_PUBLIC_API_BASE_URL || "/api/shortlink/admin/v1";
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api/shortlink/admin/v1";
 
 export const http = axios.create({
     baseURL,
