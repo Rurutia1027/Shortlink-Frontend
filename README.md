@@ -1,23 +1,53 @@
-# JVM Layer Observability for Microservices on Kubernentes 
-## Overview 
-This repository focuses on building JVM-layer observability for production-grade microservices deployed on Kubernetes. Unlike general Kubernetes cluster monitoring, the emphasis here is on the JVM metrics of microservices themselves across different operational stages: 
-- Runtime / Integration Testing / Load Testing phases 
-- JVM-level metrics: memory usage, GC behavior, threads, CPU, and other key performance indicators. 
-- Metric computation & Grafana dashboards to visualize trends and fluctuations at different stages. 
+# Shortlink Console (React + Next.js)
 
-The goal is to observe, understand, and anlyze JVM behavior of microservices under real-world conditions and workloads. 
+React + Next.js (App Router) refactor of the Shortlink Console UI.
 
+## Tech stack
 
-## Project Scope 
-### JVM Metrics Collection 
+- Next.js (App Router)
+- React
+- TypeScript
+- Axios
+- Ant Design
+- ECharts
 
-### Stage-Specific Observability 
+## Project structure
 
-### Grafana Dashboards 
+```
+console-react/
+  src/
+    app/                 # Routes (login/home/space/account/recycle-bin)
+    components/          # Reusable UI
+    features/            # Feature modules
+    lib/                 # Shared helpers (api/auth/utils)
+    store/               # Global state
+    styles/              # Global styles
+    types/               # Shared types
+```
 
-## Goals 
-- Build a hands-on, production-aligned observability framework for JVM-based microservices on Kubernetes. 
-- Analyze JVM metrics behavior under different operational stages
-- Generate reusable Grafana dashboards and metric computation patterns
-- Serve as a learning and reference hub for microservice JVM monitoring and SRE observability best practices
+## Scripts
 
+```bash
+cd console-react
+npm run dev
+npm run build
+npm run lint
+```
+
+## Environment
+
+Create `console-react/.env.local` and set the API base URL:
+
+```
+NEXT_PUBLIC_API_BASE_URL=/api/short-link/admin/v1
+```
+
+## Development
+
+```bash
+cd console-react
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`.
