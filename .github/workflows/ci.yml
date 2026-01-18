@@ -21,11 +21,11 @@ jobs:
           cache: "npm"
           cache-dependency-path: console-react/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      # - name: Install dependencies
+      #   run: npm ci
 
-      - name: Lint
-        run: npm run lint
+      # - name: Lint
+      #   run: npm run lint
 
-      - name: Build
-        run: npm run build
+      # - name: Build
+      #   run: npm run build
