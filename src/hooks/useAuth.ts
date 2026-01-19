@@ -29,6 +29,21 @@ export function useAuth(): UseAuthReturn {
 
   // Check authentication status on mount
   useEffect(() => {
+    // Migrate token from localStorage to cookies (matching Vue router.beforeEach)
+    // Vue: setToken(localStorage.getItem('token'))
+    // Vue: setUsername(localStorage.getItem('username'))
+    if (typeof window !== 'undefined') {
+      const tokenFromStorage = localStorage.getItem('token')
+      const usernameFromStorage = localStorage.getItem('username')
+      
+      if (tokenFromStorage) {
+        setToken(tokenFromStorage)
+      }
+      if (usernameFromStorage) {
+        setUsername(usernameFromStorage)
+      }
+    }
+    
     checkAuth()
   }, [])
 
