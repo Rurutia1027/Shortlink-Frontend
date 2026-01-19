@@ -1,6 +1,12 @@
 import { create } from 'zustand'
 import type { User, Group, ShortLink } from '@/src/api/types'
 
+// Domain State (matching Vue store: state.domain)
+interface DomainState {
+  domain: string
+  setDomain: (domain: string) => void
+}
+
 // UI State
 interface UIState {
   sidebarOpen: boolean
@@ -34,10 +40,14 @@ interface ModalState {
 }
 
 // Combine all states
-interface AppState extends UIState, UserState, GroupState, ModalState {}
+interface AppState extends DomainState, UIState, UserState, GroupState, ModalState {}
 
-// Create Zustand store
+// Create Zustand store (matching Vue store/index.js)
 export const useStore = create<AppState>((set, get) => ({
+  // Domain State (matching Vue: state.domain = 'shortlink.tus')
+  domain: 'shortlink.tus',
+  setDomain: (domain) => set({ domain }),
+
   // UI State
   sidebarOpen: true,
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
@@ -80,6 +90,11 @@ export const useStore = create<AppState>((set, get) => ({
 }))
 
 // Selector hooks for better performance
+export const useDomain = () => useStore((state) => ({
+  domain: state.domain,
+  setDomain: state.setDomain,
+}))
+
 export const useUI = () => useStore((state) => ({
   sidebarOpen: state.sidebarOpen,
   setSidebarOpen: state.setSidebarOpen,
