@@ -27,7 +27,21 @@ jobs:
       - name: Run linter
         run: npm run lint
 
+      - name: Run tests
+        run: npm test -- --coverage --watchAll=false --maxWorkers=2
+        env:
+          CI: true
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+          verbose: true
+
       - name: Build project
         run: npm run build
         env:
-          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api' }}
+          # NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api' }}
+          NEXT_PUBLIC_API_BASE_URL: 'http://localhost:8080/api'
