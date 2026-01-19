@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { render, screen, fireEvent } from '@testing-library/react'
 import QRCode from './QRCode'
 
