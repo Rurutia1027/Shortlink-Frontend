@@ -1,4 +1,6 @@
 import apiClient from '../client'
+import axios from 'axios'
+import { getToken, getUsername } from '@/src/lib/auth'
 import type {
   ApiResponse,
   ShortLink,
@@ -27,9 +29,25 @@ export const getShortLinks = async (params?: ShortLinkListParams): Promise<Pagin
   return result.data
 }
 
-// Create single short link (POST /create)
+// Create single short link (POST /api/shortlink/v1/links/create)
+// Backend endpoint: http://localhost:8080/api/shortlink/v1/links/create
 export const addSmallLink = async (data: CreateShortLinkRequest): Promise<ApiResponse<ShortLink>> => {
-  const response = await apiClient.post<ApiResponse<ShortLink>>('/create', data)
+  // Use full URL since backend endpoint differs from base URL
+  // TODO: Update API_BASE_URL or create separate client when backend is fully integrated
+  const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
+  const fullUrl = `${backendUrl}/api/shortlink/v1/links/create`
+  
+  // Use axios directly with full URL and auth headers
+  const token = getToken()
+  const username = getUsername()
+  const response = await axios.post<ApiResponse<ShortLink>>(fullUrl, data, {
+    headers: {
+      'Content-Type': 'application/json',
+      Token: token || '',
+      Username: username || '',
+    },
+    timeout: 15000,
+  })
   return response.data
 }
 

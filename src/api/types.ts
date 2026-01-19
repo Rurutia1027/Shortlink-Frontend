@@ -103,15 +103,31 @@ export interface ShortLink {
 }
 
 export interface CreateShortLinkRequest {
-  originalUrl: string
-  title?: string
-  description?: string
-  groupId?: string
+  originUrl?: string // For single link
+  originalUrl?: string // Alternative field name
+  describe?: string // Description/Title
+  title?: string // Alternative field name
+  description?: string // Alternative field name
+  gid?: string // Group ID
+  groupId?: string // Alternative field name
   shortCode?: string
+  createdType?: number // 1 = manual creation
+  validDate?: string | null // Format: YYYY-MM-DD HH:mm:ss
+  validDateType?: number // 0 = permanent, 1 = custom
+  domain?: string
 }
 
 export interface BatchCreateShortLinkRequest {
-  links: Array<{
+  originUrls: string[] // Array of URLs
+  describes: string[] // Array of descriptions/titles
+  gid?: string // Group ID
+  groupId?: string // Alternative field name
+  createdType?: number // 1 = manual creation
+  validDate?: string | null // Format: YYYY-MM-DD HH:mm:ss
+  validDateType?: number // 0 = permanent, 1 = custom
+  domain?: string
+  // Legacy format (for compatibility)
+  links?: Array<{
     originalUrl: string
     title?: string
     description?: string
