@@ -1,8 +1,8 @@
+import { redirect } from 'next/navigation'
+
+/**
+ * Root page - redirects to /space (matching Vue: / -> /home -> /home/space)
+ */
 export default function Home() {
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center">
-      <h1 className="text-4xl font-bold">Shortlink Frontend</h1>
-      <p className="mt-4 text-lg">Welcome to the refactored application</p>
-    </div>
-  );
+  redirect('/space')
 }

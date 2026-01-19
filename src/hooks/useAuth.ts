@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { login as loginApi, register as registerApi, getCurrentUser, logout as logoutApi, queryUserInfo } from '@/src/api'
 import { setToken, removeToken, getToken, setUsername, removeUsername, getUsername, clearAuth } from '@/src/lib/auth'
+import { isNotEmpty } from '@/src/lib/utils'
 import type { LoginRequest, RegisterRequest, User } from '@/src/api/types'
 
 interface AuthState {
@@ -29,6 +30,19 @@ export function useAuth(): UseAuthReturn {
 
   // Check authentication status on mount
   useEffect(() => {
+    // Migrate token from localStorage to cookies (matching Vue router behavior)
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token')
+      const username = localStorage.getItem('username')
+      
+      if (token) {
+        setToken(token)
+      }
+      if (username) {
+        setUsername(username)
+      }
+    }
+    
     checkAuth()
   }, [])
 
