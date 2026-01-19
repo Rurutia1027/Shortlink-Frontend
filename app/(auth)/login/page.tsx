@@ -61,8 +61,12 @@ export default function LoginPage() {
     setLoading(true)
     try {
       // Check if username already exists
+      // Vue: res1.data.success !== false means username exists
       const usernameCheck = await hasUsername({ username: values.username })
-      if (usernameCheck.data?.success !== false) {
+      // API returns ApiResponse, so we need to check the nested data structure
+      const responseData = usernameCheck.data as any
+      // If success is not false (truthy or undefined), username exists
+      if (responseData && responseData.success !== false) {
         message.error('Username already exists!')
         setLoading(false)
         return

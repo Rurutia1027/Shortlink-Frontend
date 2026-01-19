@@ -42,8 +42,9 @@ export const logout = async (data: { token: string; username: string }): Promise
 }
 
 // Check if username is available (GET /user/has-username with params)
-export const hasUsername = async (params: { username: string }): Promise<ApiResponse<{ available: boolean }>> => {
-  const response = await apiClient.get<ApiResponse<{ available: boolean }>>('/user/has-username', { params })
+// Returns ApiResponse with data containing success/available fields
+export const hasUsername = async (params: { username: string }): Promise<ApiResponse<any>> => {
+  const response = await apiClient.get<ApiResponse<any>>('/user/has-username', { params })
   return response.data
 }
 
