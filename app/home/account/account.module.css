@@ -58,6 +58,6 @@
 }
 
 /* Ant Design Descriptions customization */
-:global(.ant-descriptions-item-label) {
+.contentBox :global(.ant-descriptions-item-label) {
   width: 200px !important;
 }
