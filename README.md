@@ -1,4 +1,5 @@
 # Shortlink Frontend
+[![Shortlink Frontend CI](https://github.com/Rurutia1027/Shortlink-Frontend/actions/workflows/ci.yml/badge.svg)](https://github.com/Rurutia1027/Shortlink-Frontend/actions/workflows/ci.yml)
 
 A modern, production-ready short link management application built with React, Next.js, and TypeScript. This project provides a comprehensive solution for creating, managing, and analyzing short links with advanced analytics capabilities.
 
