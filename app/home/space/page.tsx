@@ -54,6 +54,7 @@ import {
 import { useDomain } from '@/src/store/useStore'
 import { getTodayFormatDate, getLastWeekFormatDate, truncateText } from '@/src/lib/utils'
 import type { Group, ShortLink } from '@/src/api/types'
+import QRCode from './components/QRCode/QRCode'
 import styles from './space.module.css'
 
 /**
@@ -85,6 +86,8 @@ export default function MySpacePage() {
   const [isAddSmallLink, setIsAddSmallLink] = useState(false)
   const [isEditLink, setIsEditLink] = useState(false)
   const [isAddSmallLinks, setIsAddSmallLinks] = useState(false)
+  const [qrCodeVisible, setQrCodeVisible] = useState(false)
+  const [qrCodeUrl, setQrCodeUrl] = useState('')
 
   // Forms
   const [groupForm] = Form.useForm()
@@ -457,8 +460,8 @@ export default function MySpacePage() {
               <QrcodeOutlined
                 className={styles.tableEdit}
                 onClick={() => {
-                  // TODO: Show QR code modal
-                  message.info('QR code feature coming soon')
+                  setQrCodeUrl(fullUrl)
+                  setQrCodeVisible(true)
                 }}
               />
             </Tooltip>
@@ -765,6 +768,13 @@ export default function MySpacePage() {
       >
         <p>Edit link form will be implemented as a separate component</p>
       </Modal>
+
+      {/* QR Code Modal */}
+      <QRCode
+        url={qrCodeUrl}
+        visible={qrCodeVisible}
+        onClose={() => setQrCodeVisible(false)}
+      />
     </div>
   )
 }
