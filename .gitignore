@@ -1,7 +1,8 @@
+tmps/*
 docs/
 docs/*
 TESTING_SETUP.md
-
+*.md
 IMPLEMENTATION_STATUS.md
 # Dependencies
 node_modules/

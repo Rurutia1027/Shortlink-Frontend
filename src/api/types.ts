@@ -147,17 +147,62 @@ export interface AnalyticsData {
 }
 
 export interface AccessLog {
-  id: string
-  shortLinkId: string
+  id?: string
+  shortLinkId?: string
   ip?: string
   userAgent?: string
   referer?: string
-  accessedAt: string
+  accessedAt?: string
+  createTime?: string
+  locale?: string
+  device?: string
+  browser?: string
+  os?: string
+  network?: string
+  uvType?: string
 }
 
 export interface AnalyticsResponse {
-  totalVisits: number
-  todayVisits: number
-  dateRange: AnalyticsData[]
-  accessLogs: AccessLog[]
+  totalVisits?: number
+  todayVisits?: number
+  dateRange?: AnalyticsData[]
+  accessLogs?: AccessLog[]
+  // Additional fields from Vue component
+  daily?: Array<{
+    date: string
+    pv: number
+    uv: number
+    uip: number
+  }>
+  hourStats?: number[]
+  weekdayStats?: number[]
+  localeCnStats?: Array<{
+    locale: string
+    cnt: number
+    ratio: number
+  }>
+  topIpStats?: Array<{
+    ip: string
+    cnt: number
+  }>
+  osStats?: Array<{
+    os: string
+    cnt: number
+  }>
+  browserStats?: Array<{
+    browser: string
+    cnt: number
+  }>
+  uvTypeStats?: Array<{
+    uvType: string
+    cnt: number
+  }>
+  deviceStats?: Array<{
+    device: string
+    cnt: number
+  }>
+  networkStats?: Array<{
+    device: string
+    cnt: number
+  }>
 }

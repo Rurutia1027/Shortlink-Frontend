@@ -53,8 +53,9 @@ import {
 } from '@/src/api'
 import { useDomain } from '@/src/store/useStore'
 import { getTodayFormatDate, getLastWeekFormatDate, truncateText } from '@/src/lib/utils'
-import type { Group, ShortLink } from '@/src/api/types'
+import type { Group, ShortLink, AnalyticsResponse } from '@/src/api/types'
 import QRCode from './components/QRCode/QRCode'
+import ChartsInfo, { type ChartsInfoRef } from './components/ChartsInfo/ChartsInfo'
 import styles from './space.module.css'
 
 /**
@@ -88,6 +89,18 @@ export default function MySpacePage() {
   const [isAddSmallLinks, setIsAddSmallLinks] = useState(false)
   const [qrCodeVisible, setQrCodeVisible] = useState(false)
   const [qrCodeUrl, setQrCodeUrl] = useState('')
+  
+  // Charts info
+  const chartsInfoRef = useRef<ChartsInfoRef>(null)
+  const [chartsInfoTitle, setChartsInfoTitle] = useState('')
+  const [chartsInfo, setChartsInfo] = useState<AnalyticsResponse | null>(null)
+  const [tableInfo, setTableInfo] = useState<any>(null)
+  const [isGroupChart, setIsGroupChart] = useState(false)
+  const [chartsNums, setChartsNums] = useState(0)
+  const [chartsFavicon, setChartsFavicon] = useState<string>()
+  const [chartsOriginUrl, setChartsOriginUrl] = useState<string>()
+  const [tableFullShortUrl, setTableFullShortUrl] = useState<string>()
+  const [tableGid, setTableGid] = useState<string>()
 
   // Forms
   const [groupForm] = Form.useForm()
@@ -385,6 +398,106 @@ export default function MySpacePage() {
     return url || '/images/default-link-icon.png'
   }
 
+  // Charts info state
+  const statsFormData = {
+    endDate: getTodayFormatDate(),
+    startDate: getLastWeekFormatDate(),
+    size: 10,
+    current: 1,
+  }
+
+  // Show charts modal
+  const chartsVisible = async (rowInfo: any, dateList?: [string, string]) => {
+    setChartsInfoTitle(rowInfo?.describe || rowInfo?.name || '')
+    const { fullShortUrl, gid, group, originUrl, favicon, enableStatus } = rowInfo
+    setChartsOriginUrl(originUrl)
+    setChartsFavicon(favicon)
+    setIsGroupChart(!!group)
+    setTableFullShortUrl(fullShortUrl)
+    setTableGid(gid)
+    setChartsNums(rowInfo?.shortLinkCount || 0)
+
+    chartsInfoRef.current?.isVisible()
+
+    // Prepare date range
+    let startDate = statsFormData.startDate
+    let endDate = statsFormData.endDate
+    if (dateList) {
+      startDate = dateList[0] + ' 00:00:00'
+      endDate = dateList[1] + ' 23:59:59'
+    } else {
+      startDate = getLastWeekFormatDate() + ' 00:00:00'
+      endDate = getTodayFormatDate() + ' 23:59:59'
+    }
+
+    try {
+      let res: any = null
+      let tableRes: any = null
+
+      if (group) {
+        res = await queryGroupStats({ ...statsFormData, fullShortUrl, gid, startDate, endDate })
+        tableRes = await queryGroupTable({ gid, ...statsFormData, startDate, endDate })
+      } else {
+        res = await queryLinkStats({ ...statsFormData, fullShortUrl, gid, enableStatus, startDate, endDate })
+        tableRes = await queryLinkTable({ gid, fullShortUrl, ...statsFormData, enableStatus, startDate, endDate })
+      }
+
+      const responseData = res.data as any
+      setChartsInfo(responseData.data || responseData)
+      setTableInfo(tableRes)
+    } catch (error: any) {
+      message.error(error.message || 'Failed to load chart data')
+    }
+  }
+
+  // Handle time change in charts
+  const handleChartsTimeChange = async (dateList: [string, string] | null) => {
+    if (!dateList) return
+
+    const startDate = dateList[0] + ' 00:00:00'
+    const endDate = dateList[1] + ' 23:59:59'
+
+    try {
+      let res: any = null
+      let tableRes: any = null
+
+      if (isGroupChart) {
+        res = await queryGroupStats({ ...statsFormData, fullShortUrl: tableFullShortUrl, gid: tableGid, startDate, endDate })
+        tableRes = await queryGroupTable({ gid: tableGid, ...statsFormData, startDate, endDate })
+      } else {
+        res = await queryLinkStats({ ...statsFormData, fullShortUrl: tableFullShortUrl, gid: tableGid, startDate, endDate })
+        tableRes = await queryLinkTable({ gid: tableGid, fullShortUrl: tableFullShortUrl, ...statsFormData, startDate, endDate })
+      }
+
+      const responseData = res.data as any
+      setChartsInfo(responseData.data || responseData)
+      setTableInfo(tableRes)
+    } catch (error: any) {
+      message.error(error.message || 'Failed to load chart data')
+    }
+  }
+
+  // Handle page change in charts
+  const handleChartsPageChange = async (page: { current: number; size: number }) => {
+    const { current, size } = page
+    statsFormData.current = current || 1
+    statsFormData.size = size || 10
+
+    try {
+      let tableRes: any = null
+
+      if (isGroupChart) {
+        tableRes = await queryGroupTable({ gid: tableGid, ...statsFormData })
+      } else {
+        tableRes = await queryLinkTable({ gid: tableGid, fullShortUrl: tableFullShortUrl, ...statsFormData })
+      }
+
+      setTableInfo(tableRes)
+    } catch (error: any) {
+      message.error(error.message || 'Failed to load table data')
+    }
+  }
+
   // Table columns
   const columns: ColumnsType<ShortLink> = [
     {
@@ -537,8 +650,7 @@ export default function MySpacePage() {
             <BarChartOutlined
               className={styles.tableEdit}
               onClick={() => {
-                // TODO: Show charts modal
-                message.info('Charts feature coming soon')
+                chartsVisible(record)
               }}
             />
           </Tooltip>
@@ -620,6 +732,7 @@ export default function MySpacePage() {
                   onClick={() => handleGroupSelect(index)}
                   onEdit={() => showEditGroup(group.gid || '', group.name)}
                   onDelete={() => handleDeleteGroup(group.gid || '')}
+                  onChartsClick={() => chartsVisible({ describe: group.name, gid: group.gid, group: true, shortLinkCount: group.shortLinkCount })}
                 />
               ))}
             </ul>
@@ -775,6 +888,20 @@ export default function MySpacePage() {
         visible={qrCodeVisible}
         onClose={() => setQrCodeVisible(false)}
       />
+
+      {/* Charts Info Modal */}
+      <ChartsInfo
+        ref={chartsInfoRef}
+        title={chartsInfoTitle}
+        info={chartsInfo || undefined}
+        tableInfo={tableInfo}
+        isGroup={isGroupChart}
+        nums={chartsNums}
+        favicon={chartsFavicon}
+        originUrl={chartsOriginUrl}
+        onChangeTime={handleChartsTimeChange}
+        onChangePage={handleChartsPageChange}
+      />
     </div>
   )
 }
@@ -787,6 +914,7 @@ function SortableGroupItem({
   onClick,
   onEdit,
   onDelete,
+  onChartsClick,
 }: {
   group: Group
   index: number
@@ -794,6 +922,7 @@ function SortableGroupItem({
   onClick: () => void
   onEdit: () => void
   onDelete: () => void
+  onChartsClick?: () => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: group.gid || '',
@@ -840,7 +969,7 @@ function SortableGroupItem({
                 className={styles.edit}
                 onClick={(e) => {
                   e.stopPropagation()
-                  // TODO: Show charts
+                  onChartsClick?.()
                 }}
               />
             </Tooltip>
