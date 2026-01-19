@@ -136,11 +136,20 @@ export interface BatchCreateShortLinkRequest {
 }
 
 export interface UpdateShortLinkRequest {
-  id: string
+  id?: string
+  fullShortUrl?: string
+  originUrl?: string
   originalUrl?: string
+  describe?: string
   title?: string
   description?: string
+  gid?: string
   groupId?: string
+  originGid?: string // Original group ID before edit
+  createdType?: number
+  validDate?: string | null
+  validDateType?: number
+  domain?: string
 }
 
 export interface ShortLinkListParams {
