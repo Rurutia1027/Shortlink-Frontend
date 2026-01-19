@@ -1,48 +1,62 @@
 import Cookies from 'js-cookie'
 
-// Cookie keys
-const TOKEN_KEY = 'token'
+/**
+ * Auth Utilities
+ * Additional helper functions for React/Next.js
+ */
+
+// Cookie keys 
+const TokenKey = 'token'
 const USERNAME_KEY = 'username'
 
-// Token management
-export const getToken = (): string | undefined => {
-  return Cookies.get(TOKEN_KEY)
+export function getToken(): string | undefined {
+  return Cookies.get(TokenKey)
 }
 
-export const setToken = (token: string, rememberMe: boolean = false): void => {
-  const options = rememberMe
-    ? { expires: 7 } // 7 days
-    : {} // Session cookie
-  Cookies.set(TOKEN_KEY, token, options)
+export function setToken(token: string, rememberMe?: boolean): void {
+  if (rememberMe) {
+    Cookies.set(TokenKey, token, { expires: 7 }) // 7 days
+  } else {
+    Cookies.set(TokenKey, token) // Session cookie (matching Vue)
+  }
 }
 
-export const removeToken = (): void => {
-  Cookies.remove(TOKEN_KEY)
+export function removeToken(): void {
+  Cookies.remove(TokenKey)
 }
 
-// Username management
-export const getUsername = (): string | undefined => {
+export function removeKey(): void {
+  removeToken()
+}
+
+// Username management 
+export function getUsername(): string | undefined {
   return Cookies.get(USERNAME_KEY)
 }
 
-export const setUsername = (username: string, rememberMe: boolean = false): void => {
-  const options = rememberMe
-    ? { expires: 7 } // 7 days
-    : {} // Session cookie
-  Cookies.set(USERNAME_KEY, username, options)
+export function setUsername(username: string, rememberMe?: boolean): void {
+  if (rememberMe) {
+    Cookies.set(USERNAME_KEY, username, { expires: 7 }) // 7 days
+  } else {
+    Cookies.set(USERNAME_KEY, username) // Session cookie  
+  }
 }
 
-export const removeUsername = (): void => {
+export function removeUsername(): void {
   Cookies.remove(USERNAME_KEY)
 }
 
-// Clear all auth data
-export const clearAuth = (): void => {
+/**
+ * Clear all auth data (token and username)
+ */
+export function clearAuth(): void {
   removeToken()
   removeUsername()
 }
 
-// Check if user is authenticated
-export const isAuthenticated = (): boolean => {
+/**
+ * Check if user is authenticated
+ */
+export function isAuthenticated(): boolean {
   return !!getToken()
 }
