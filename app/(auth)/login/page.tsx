@@ -3,7 +3,6 @@
 /**
  * Login Page
  * Route: /login
- * Matches Vue: views/login/LoginIndex.vue
  */
 export default function LoginPage() {
   return (

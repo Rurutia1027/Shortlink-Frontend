@@ -3,7 +3,6 @@
 /**
  * Recycle Bin Page
  * Route: /recycle-bin
- * Matches Vue: views/recycleBin/RecycleBinIndex.vue
  */
 export default function RecycleBinPage() {
   return (

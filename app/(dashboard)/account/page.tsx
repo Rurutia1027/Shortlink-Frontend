@@ -3,7 +3,6 @@
 /**
  * User Account Page (Personal Center)
  * Route: /account
- * Matches Vue: views/mine/MineIndex.vue
  */
 export default function AccountPage() {
   return (
