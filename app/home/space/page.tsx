@@ -58,6 +58,7 @@ import QRCode from './components/QRCode/QRCode'
 import ChartsInfo, { type ChartsInfoRef } from './components/ChartsInfo/ChartsInfo'
 import CreateLink from './components/CreateLink/CreateLink'
 import CreateLinks from './components/CreateLinks/CreateLinks'
+import EditLink from './components/EditLink/EditLink'
 import styles from './space.module.css'
 
 /**
@@ -89,6 +90,7 @@ export default function MySpacePage() {
   const [isAddSmallLink, setIsAddSmallLink] = useState(false)
   const [isEditLink, setIsEditLink] = useState(false)
   const [isAddSmallLinks, setIsAddSmallLinks] = useState(false)
+  const [editData, setEditData] = useState<ShortLink | null>(null)
   const [qrCodeVisible, setQrCodeVisible] = useState(false)
   const [qrCodeUrl, setQrCodeUrl] = useState('')
   
@@ -662,8 +664,8 @@ export default function MySpacePage() {
                 <EditOutlined
                   className={styles.tableEdit}
                   onClick={() => {
-                    // TODO: Show edit modal
-                    message.info('Edit feature coming soon')
+                    setEditData(record)
+                    setIsEditLink(true)
                   }}
                 />
               </Tooltip>
@@ -894,14 +896,37 @@ export default function MySpacePage() {
         />
       </Modal>
 
+      {/* Edit Link Modal */}
       <Modal
         title="Edit Link"
         open={isEditLink}
-        onCancel={() => setIsEditLink(false)}
+        onCancel={() => {
+          setIsEditLink(false)
+          setEditData(null)
+        }}
         footer={null}
         width={800}
+        data-testid="modal-edit-link"
       >
-        <p>Edit link form will be implemented as a separate component</p>
+        {editData && (
+          <EditLink
+            groupInfo={groups}
+            editData={editData}
+            onSubmit={() => {
+              setIsEditLink(false)
+              setEditData(null)
+              loadTableData()
+            }}
+            onCancel={() => {
+              setIsEditLink(false)
+              setEditData(null)
+            }}
+            onUpdatePage={() => {
+              loadTableData()
+              loadGroups()
+            }}
+          />
+        )}
       </Modal>
 
       {/* QR Code Modal */}
