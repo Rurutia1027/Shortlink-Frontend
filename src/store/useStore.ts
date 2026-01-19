@@ -1,0 +1,108 @@
+import { create } from 'zustand'
+import type { User, Group, ShortLink } from '@/src/api/types'
+
+// UI State
+interface UIState {
+  sidebarOpen: boolean
+  setSidebarOpen: (open: boolean) => void
+  toggleSidebar: () => void
+}
+
+// User State
+interface UserState {
+  user: User | null
+  setUser: (user: User | null) => void
+}
+
+// Group State
+interface GroupState {
+  groups: Group[]
+  selectedGroupId: string | null
+  setGroups: (groups: Group[]) => void
+  setSelectedGroupId: (groupId: string | null) => void
+  addGroup: (group: Group) => void
+  updateGroup: (group: Group) => void
+  removeGroup: (groupId: string) => void
+}
+
+// Modal State
+interface ModalState {
+  modals: Record<string, boolean>
+  openModal: (modalName: string) => void
+  closeModal: (modalName: string) => void
+  isModalOpen: (modalName: string) => boolean
+}
+
+// Combine all states
+interface AppState extends UIState, UserState, GroupState, ModalState {}
+
+// Create Zustand store
+export const useStore = create<AppState>((set, get) => ({
+  // UI State
+  sidebarOpen: true,
+  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+
+  // User State
+  user: null,
+  setUser: (user) => set({ user }),
+
+  // Group State
+  groups: [],
+  selectedGroupId: null,
+  setGroups: (groups) => set({ groups }),
+  setSelectedGroupId: (groupId) => set({ selectedGroupId: groupId }),
+  addGroup: (group) => set((state) => ({ groups: [...state.groups, group] })),
+  updateGroup: (group) =>
+    set((state) => ({
+      groups: state.groups.map((g) => (g.id === group.id ? group : g)),
+    })),
+  removeGroup: (groupId) =>
+    set((state) => ({
+      groups: state.groups.filter((g) => g.id !== groupId),
+      selectedGroupId: state.selectedGroupId === groupId ? null : state.selectedGroupId,
+    })),
+
+  // Modal State
+  modals: {},
+  openModal: (modalName) =>
+    set((state) => ({
+      modals: { ...state.modals, [modalName]: true },
+    })),
+  closeModal: (modalName) =>
+    set((state) => ({
+      modals: { ...state.modals, [modalName]: false },
+    })),
+  isModalOpen: (modalName) => {
+    const state = get()
+    return state.modals[modalName] || false
+  },
+}))
+
+// Selector hooks for better performance
+export const useUI = () => useStore((state) => ({
+  sidebarOpen: state.sidebarOpen,
+  setSidebarOpen: state.setSidebarOpen,
+  toggleSidebar: state.toggleSidebar,
+}))
+
+export const useUser = () => useStore((state) => ({
+  user: state.user,
+  setUser: state.setUser,
+}))
+
+export const useGroups = () => useStore((state) => ({
+  groups: state.groups,
+  selectedGroupId: state.selectedGroupId,
+  setGroups: state.setGroups,
+  setSelectedGroupId: state.setSelectedGroupId,
+  addGroup: state.addGroup,
+  updateGroup: state.updateGroup,
+  removeGroup: state.removeGroup,
+}))
+
+export const useModals = () => useStore((state) => ({
+  openModal: state.openModal,
+  closeModal: state.closeModal,
+  isModalOpen: state.isModalOpen,
+}))
