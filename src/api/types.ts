@@ -18,9 +18,13 @@ export interface PaginatedResponse<T> {
 
 // User Types
 export interface User {
-  id: string
+  id?: string
   username: string
   email?: string
+  mail?: string
+  phone?: string
+  realName?: string
+  password?: string
   createdAt?: string
 }
 
