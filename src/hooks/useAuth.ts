@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { login as loginApi, register as registerApi, getCurrentUser, logout as logoutApi } from '@/src/api'
+import { login as loginApi, register as registerApi, getCurrentUser, logout as logoutApi, queryUserInfo } from '@/src/api'
 import { setToken, removeToken, getToken, setUsername, removeUsername, getUsername, clearAuth } from '@/src/lib/auth'
 import type { LoginRequest, RegisterRequest, User } from '@/src/api/types'
 
@@ -65,7 +65,9 @@ export function useAuth(): UseAuthReturn {
 
   const login = useCallback(async (credentials: LoginRequest) => {
     try {
-      const response = await loginApi(credentials)
+      const apiResponse = await loginApi(credentials)
+      // API returns ApiResponse<LoginResponse>, so we need to access .data
+      const response = apiResponse.data
       
       // Save token and username
       setToken(response.token, credentials.rememberMe || false)
@@ -89,7 +91,8 @@ export function useAuth(): UseAuthReturn {
 
   const register = useCallback(async (userData: RegisterRequest) => {
     try {
-      const user = await registerApi(userData)
+      // API returns ApiResponse<User>, so we need to access .data
+      await registerApi(userData)
       
       // After registration, redirect to login
       router.push('/login')
@@ -100,10 +103,16 @@ export function useAuth(): UseAuthReturn {
 
   const logout = useCallback(async () => {
     try {
-      // Call logout API (if available)
-      await logoutApi().catch(() => {
-        // Ignore errors if logout API fails
-      })
+      // Get token and username before clearing auth
+      const token = getToken()
+      const username = getUsername()
+      
+      // Call logout API with token and username (matching Vue implementation)
+      if (token && username) {
+        await logoutApi({ token, username }).catch(() => {
+          // Ignore errors if logout API fails
+        })
+      }
     } finally {
       // Clear local auth data
       clearAuth()
