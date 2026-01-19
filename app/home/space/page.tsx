@@ -56,6 +56,8 @@ import { getTodayFormatDate, getLastWeekFormatDate, truncateText } from '@/src/l
 import type { Group, ShortLink, AnalyticsResponse } from '@/src/api/types'
 import QRCode from './components/QRCode/QRCode'
 import ChartsInfo, { type ChartsInfoRef } from './components/ChartsInfo/ChartsInfo'
+import CreateLink from './components/CreateLink/CreateLink'
+import CreateLinks from './components/CreateLinks/CreateLinks'
 import styles from './space.module.css'
 
 /**
@@ -851,25 +853,45 @@ export default function MySpacePage() {
         </Form>
       </Modal>
 
-      {/* Create/Edit Link Modals - TODO: Implement child components */}
+      {/* Create Link Modal */}
       <Modal
         title="Create Link"
         open={isAddSmallLink}
         onCancel={() => setIsAddSmallLink(false)}
         footer={null}
         width={800}
+        data-testid="modal-create-link"
       >
-        <p>Create link form will be implemented as a separate component</p>
+        <CreateLink
+          groupInfo={groups}
+          isSingle={true}
+          defaultGid={selectedGroupId || undefined}
+          onSubmit={() => {
+            setIsAddSmallLink(false)
+            loadTableData()
+          }}
+          onCancel={() => setIsAddSmallLink(false)}
+        />
       </Modal>
 
+      {/* Batch Create Links Modal */}
       <Modal
         title="Batch Create Links"
         open={isAddSmallLinks}
         onCancel={() => setIsAddSmallLinks(false)}
         footer={null}
         width={800}
+        data-testid="modal-create-links"
       >
-        <p>Batch create form will be implemented as a separate component</p>
+        <CreateLinks
+          groupInfo={groups}
+          defaultGid={selectedGroupId || undefined}
+          onSubmit={() => {
+            setIsAddSmallLinks(false)
+            loadTableData()
+          }}
+          onCancel={() => setIsAddSmallLinks(false)}
+        />
       </Modal>
 
       <Modal
