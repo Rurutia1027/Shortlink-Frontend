@@ -9,49 +9,74 @@ import type {
 
 /**
  * Group API Module
- * Handles group-related API calls
+ * Matches Vue implementation: api/modules/group.js
  */
 
-// Get all groups
-export const getGroups = async (): Promise<Group[]> => {
-  const response = await apiClient.get<ApiResponse<Group[]>>('/group/list')
-  return response.data.data
+// Query groups (GET /group with params)
+export const queryGroup = async (params?: any): Promise<ApiResponse<Group[]>> => {
+  const response = await apiClient.get<ApiResponse<Group[]>>('/group', { params })
+  return response.data
 }
 
-// Get group by ID
-export const getGroupById = async (id: string): Promise<Group> => {
-  const response = await apiClient.get<ApiResponse<Group>>(`/group/${id}`)
-  return response.data.data
+// Alias for compatibility
+export const getGroups = async (params?: any): Promise<Group[]> => {
+  const result = await queryGroup(params)
+  return result.data
 }
 
-// Create group
-export const createGroup = async (groupData: CreateGroupRequest): Promise<Group> => {
-  const response = await apiClient.post<ApiResponse<Group>>('/group/create', groupData)
-  return response.data.data
+// Create group (POST /group)
+export const addGroup = async (data: CreateGroupRequest): Promise<ApiResponse<Group>> => {
+  const response = await apiClient.post<ApiResponse<Group>>('/group', data)
+  return response.data
 }
 
-// Update group
-export const updateGroup = async (groupData: UpdateGroupRequest): Promise<Group> => {
-  const response = await apiClient.put<ApiResponse<Group>>('/group/update', groupData)
-  return response.data.data
+// Alias for compatibility
+export const createGroup = async (data: CreateGroupRequest): Promise<Group> => {
+  const result = await addGroup(data)
+  return result.data
 }
 
-// Delete group
-export const deleteGroup = async (id: string): Promise<void> => {
-  await apiClient.delete(`/group/${id}`)
+// Update group (PUT /group)
+export const editGroup = async (data: UpdateGroupRequest): Promise<ApiResponse<Group>> => {
+  const response = await apiClient.put<ApiResponse<Group>>('/group', data)
+  return response.data
 }
 
-// Update group sort order (drag and drop)
-export const updateGroupSortOrder = async (groups: Array<{ id: string; sortOrder: number }>): Promise<void> => {
-  await apiClient.put('/group/sort', { groups })
+// Alias for compatibility
+export const updateGroup = async (data: UpdateGroupRequest): Promise<Group> => {
+  const result = await editGroup(data)
+  return result.data
 }
 
-// Get group statistics
-export const getGroupStatistics = async (groupId: string, startDate?: string, endDate?: string): Promise<any> => {
-  const params: Record<string, string> = {}
-  if (startDate) params.startDate = startDate
-  if (endDate) params.endDate = endDate
-  
-  const response = await apiClient.get<ApiResponse<any>>(`/group/${groupId}/statistics`, { params })
-  return response.data.data
+// Delete group (DELETE /group with params)
+export const deleteGroup = async (data: { id?: string }): Promise<void> => {
+  await apiClient.delete('/group', { params: data })
+}
+
+// Sort groups (POST /group/sort)
+export const sortGroup = async (data: any): Promise<void> => {
+  await apiClient.post('/group/sort', data)
+}
+
+// Alias for compatibility
+export const updateGroupSortOrder = async (data: any): Promise<void> => {
+  await sortGroup(data)
+}
+
+// Query group statistics (GET /stats/group with params)
+export const queryGroupStats = async (params?: any): Promise<ApiResponse<any>> => {
+  const response = await apiClient.get<ApiResponse<any>>('/stats/group', { params })
+  return response.data
+}
+
+// Alias for compatibility
+export const getGroupStatistics = async (params?: any): Promise<any> => {
+  const result = await queryGroupStats(params)
+  return result.data
+}
+
+// Query group access records (GET /stats/access-record/group with params)
+export const queryGroupTable = async (params?: any): Promise<ApiResponse<any>> => {
+  const response = await apiClient.get<ApiResponse<any>>('/stats/access-record/group', { params })
+  return response.data
 }

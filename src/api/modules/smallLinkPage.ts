@@ -12,76 +12,120 @@ import type {
 
 /**
  * Short Link API Module
- * Handles short link-related API calls
+ * Matches Vue implementation: api/modules/smallLinkPage.js
  */
 
-// Get short links list (with pagination)
+// Query short links page (GET /page with params)
+export const queryPage = async (params?: ShortLinkListParams): Promise<ApiResponse<PaginatedResponse<ShortLink>>> => {
+  const response = await apiClient.get<ApiResponse<PaginatedResponse<ShortLink>>>('/page', { params })
+  return response.data
+}
+
+// Alias for compatibility
 export const getShortLinks = async (params?: ShortLinkListParams): Promise<PaginatedResponse<ShortLink>> => {
-  const response = await apiClient.get<ApiResponse<PaginatedResponse<ShortLink>>>('/link/list', { params })
-  return response.data.data
+  const result = await queryPage(params)
+  return result.data
 }
 
-// Get short link by ID
-export const getShortLinkById = async (id: string): Promise<ShortLink> => {
-  const response = await apiClient.get<ApiResponse<ShortLink>>(`/link/${id}`)
-  return response.data.data
+// Create single short link (POST /create)
+export const addSmallLink = async (data: CreateShortLinkRequest): Promise<ApiResponse<ShortLink>> => {
+  const response = await apiClient.post<ApiResponse<ShortLink>>('/create', data)
+  return response.data
 }
 
-// Create single short link
-export const createShortLink = async (linkData: CreateShortLinkRequest): Promise<ShortLink> => {
-  const response = await apiClient.post<ApiResponse<ShortLink>>('/link/create', linkData)
-  return response.data.data
+// Alias for compatibility
+export const createShortLink = async (data: CreateShortLinkRequest): Promise<ShortLink> => {
+  const result = await addSmallLink(data)
+  return result.data
 }
 
-// Batch create short links
-export const batchCreateShortLinks = async (linksData: BatchCreateShortLinkRequest): Promise<ShortLink[]> => {
-  const response = await apiClient.post<ApiResponse<ShortLink[]>>('/link/batch-create', linksData)
-  return response.data.data
+// Batch create short links (POST /create/batch with arraybuffer response)
+export const addLinks = async (data: BatchCreateShortLinkRequest): Promise<ArrayBuffer> => {
+  const response = await apiClient.post<ArrayBuffer>('/create/batch', data, {
+    responseType: 'arraybuffer',
+  })
+  return response.data
 }
 
-// Update short link
-export const updateShortLink = async (linkData: UpdateShortLinkRequest): Promise<ShortLink> => {
-  const response = await apiClient.put<ApiResponse<ShortLink>>('/link/update', linkData)
-  return response.data.data
+// Alias for compatibility
+export const batchCreateShortLinks = async (data: BatchCreateShortLinkRequest): Promise<ArrayBuffer> => {
+  return await addLinks(data)
 }
 
-// Delete short link (move to recycle bin)
-export const deleteShortLink = async (id: string): Promise<void> => {
-  await apiClient.delete(`/link/${id}`)
+// Update short link (POST /update)
+export const editSmallLink = async (data: UpdateShortLinkRequest): Promise<ApiResponse<ShortLink>> => {
+  const response = await apiClient.post<ApiResponse<ShortLink>>('/update', data)
+  return response.data
 }
 
-// Get recycle bin list
+// Alias for compatibility
+export const updateShortLink = async (data: UpdateShortLinkRequest): Promise<ShortLink> => {
+  const result = await editSmallLink(data)
+  return result.data
+}
+
+// Query title by URL (GET /title with params)
+export const queryTitle = async (params: { url: string }): Promise<ApiResponse<{ title?: string }>> => {
+  const response = await apiClient.get<ApiResponse<{ title?: string }>>('/title', { params })
+  return response.data
+}
+
+// Move to recycle bin (POST /recycle-bin/save)
+export const toRecycleBin = async (data: { id: string }): Promise<void> => {
+  await apiClient.post('/recycle-bin/save', data)
+}
+
+// Alias for compatibility
+export const deleteShortLink = async (data: { id: string }): Promise<void> => {
+  await toRecycleBin(data)
+}
+
+// Query recycle bin page (GET /recycle-bin/page with params)
+export const queryRecycleBin = async (params?: ShortLinkListParams): Promise<ApiResponse<PaginatedResponse<ShortLink>>> => {
+  const response = await apiClient.get<ApiResponse<PaginatedResponse<ShortLink>>>('/recycle-bin/page', { params })
+  return response.data
+}
+
+// Alias for compatibility
 export const getRecycleBinLinks = async (params?: ShortLinkListParams): Promise<PaginatedResponse<ShortLink>> => {
-  const response = await apiClient.get<ApiResponse<PaginatedResponse<ShortLink>>>('/link/recycle-bin', { params })
-  return response.data.data
+  const result = await queryRecycleBin(params)
+  return result.data
 }
 
-// Restore short link from recycle bin
-export const restoreShortLink = async (id: string): Promise<void> => {
-  await apiClient.post(`/link/${id}/restore`)
+// Recover link from recycle bin (POST /recycle-bin/recover)
+export const recoverLink = async (data: { id: string }): Promise<void> => {
+  await apiClient.post('/recycle-bin/recover', data)
 }
 
-// Permanently delete short link
-export const permanentlyDeleteShortLink = async (id: string): Promise<void> => {
-  await apiClient.delete(`/link/${id}/permanent`)
+// Alias for compatibility
+export const restoreShortLink = async (data: { id: string }): Promise<void> => {
+  await recoverLink(data)
 }
 
-// Get short link analytics
-export const getShortLinkAnalytics = async (
-  id: string,
-  startDate?: string,
-  endDate?: string
-): Promise<AnalyticsResponse> => {
-  const params: Record<string, string> = {}
-  if (startDate) params.startDate = startDate
-  if (endDate) params.endDate = endDate
-  
-  const response = await apiClient.get<ApiResponse<AnalyticsResponse>>(`/link/${id}/analytics`, { params })
-  return response.data.data
+// Permanently remove link (POST /recycle-bin/remove)
+export const removeLink = async (data: { id: string }): Promise<void> => {
+  await apiClient.post('/recycle-bin/remove', data)
 }
 
-// Get short link by short code (for redirect)
-export const getShortLinkByCode = async (shortCode: string): Promise<ShortLink> => {
-  const response = await apiClient.get<ApiResponse<ShortLink>>(`/link/code/${shortCode}`)
-  return response.data.data
+// Alias for compatibility
+export const permanentlyDeleteShortLink = async (data: { id: string }): Promise<void> => {
+  await removeLink(data)
+}
+
+// Query link statistics (GET /stats with params)
+export const queryLinkStats = async (params?: any): Promise<ApiResponse<AnalyticsResponse>> => {
+  const response = await apiClient.get<ApiResponse<AnalyticsResponse>>('/stats', { params })
+  return response.data
+}
+
+// Alias for compatibility
+export const getShortLinkAnalytics = async (params?: any): Promise<AnalyticsResponse> => {
+  const result = await queryLinkStats(params)
+  return result.data
+}
+
+// Query link access records (GET /stats/access-record with params)
+export const queryLinkTable = async (params?: any): Promise<ApiResponse<any>> => {
+  const response = await apiClient.get<ApiResponse<any>>('/stats/access-record', { params })
+  return response.data
 }
