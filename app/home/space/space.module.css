@@ -1,0 +1,259 @@
+.container {
+  display: flex;
+  height: 100%;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100%;
+  width: 190px;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.optionTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 56px;
+  font-size: 15px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0 10px;
+}
+
+.optionTitle span {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.hoverBox {
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.hoverBox:hover {
+  color: rgba(40, 145, 206, 0.6);
+  background-color: #f7f7f7;
+  box-shadow: 0px 2px 8px 0px rgba(28, 41, 90, 0.1);
+}
+
+.sortOptions {
+  height: calc(100% - 106px);
+  margin-bottom: 50px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.itemBox {
+  height: 43px;
+  width: 100%;
+  font-weight: 520;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.selectedItem {
+  color: #3464e0 !important;
+  background-color: #ebeffa !important;
+  font-weight: 600 !important;
+}
+
+.flexBox {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.edit {
+  display: none;
+  color: rgb(83, 97, 97);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.itemBox:hover .edit {
+  display: block;
+}
+
+.itemBox:hover .itemLength {
+  display: none !important;
+}
+
+.edit:hover {
+  color: #2991ce;
+}
+
+.itemLength {
+  margin-left: 5px;
+  font-size: 12px;
+}
+
+.overText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100px;
+}
+
+.recycleBin {
+  position: absolute;
+  display: flex;
+  bottom: 0;
+  height: 50px;
+  width: 100%;
+}
+
+.recycleBox {
+  flex: 1;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contentBox {
+  flex: 1;
+  padding: 16px;
+  background-color: #eef0f5;
+  position: relative;
+}
+
+.tableBox {
+  background-color: #ffffff;
+  height: 100%;
+  padding: 16px;
+}
+
+.buttonsBox {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.recycleBinBox {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.recycleBinBox span:first-child {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.paginationBlock {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.tableLinkBox {
+  display: flex;
+  align-items: center;
+}
+
+.nameDate {
+  display: flex;
+  flex-direction: column;
+  margin-left: 10px;
+}
+
+.nameDate > span:first-child {
+  font-size: 15px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.time {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.time span {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.expiredBadge {
+  border: 1.5px solid rgb(253, 81, 85);
+  border-radius: 8px;
+  line-height: 20px;
+  font-size: 12px;
+  transform: scale(0.9);
+  color: rgb(253, 81, 85);
+  padding: 0 4px;
+  background-color: rgba(250, 210, 211);
+  font-weight: bolder;
+}
+
+.tableUrlBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.tableUrlBox > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 250px;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 12px;
+}
+
+.timesBox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.todayBox,
+.totalBox {
+  display: flex;
+  gap: 10px;
+}
+
+.todayBox span:first-child,
+.totalBox span:first-child {
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+}
+
+.todayBox span:last-child {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.totalBox span:last-child {
+  font-weight: 400;
+  font-size: 13px;
+}
+
+.tableEdit {
+  font-size: 20px;
+  margin-right: 15px;
+  color: #3677c2;
+  cursor: pointer;
+}
+
+.tableEdit:hover {
+  color: #98cafe;
+}

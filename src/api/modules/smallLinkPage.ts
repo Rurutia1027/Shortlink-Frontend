@@ -71,7 +71,7 @@ export const queryTitle = async (params: { url: string }): Promise<ApiResponse<{
 }
 
 // Move to recycle bin (POST /recycle-bin/save)
-export const toRecycleBin = async (data: { id: string }): Promise<void> => {
+export const toRecycleBin = async (data: { id?: string; gid?: string; fullShortUrl?: string }): Promise<void> => {
   await apiClient.post('/recycle-bin/save', data)
 }
 
@@ -93,7 +93,7 @@ export const getRecycleBinLinks = async (params?: ShortLinkListParams): Promise<
 }
 
 // Recover link from recycle bin (POST /recycle-bin/recover)
-export const recoverLink = async (data: { id: string }): Promise<void> => {
+export const recoverLink = async (data: { id?: string; gid?: string; fullShortUrl?: string }): Promise<void> => {
   await apiClient.post('/recycle-bin/recover', data)
 }
 
@@ -103,7 +103,7 @@ export const restoreShortLink = async (data: { id: string }): Promise<void> => {
 }
 
 // Permanently remove link (POST /recycle-bin/remove)
-export const removeLink = async (data: { id: string }): Promise<void> => {
+export const removeLink = async (data: { id?: string; gid?: string; fullShortUrl?: string }): Promise<void> => {
   await apiClient.post('/recycle-bin/remove', data)
 }
 
