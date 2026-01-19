@@ -2,6 +2,8 @@
  * Utility Functions
  */
 
+import dayjs from 'dayjs'
+
 /**
  * Check if a value is not empty
  * @param value - The value to check
@@ -30,4 +32,31 @@ export const isNotEmpty = (value: any): boolean => {
  */
 export const isEmpty = (value: any): boolean => {
   return !isNotEmpty(value)
+}
+
+/**
+ * Get today's date formatted as YYYY-MM-DD
+ * @returns Formatted date string
+ */
+export const getTodayFormatDate = (): string => {
+  return dayjs().format('YYYY-MM-DD')
+}
+
+/**
+ * Get last week's date formatted as YYYY-MM-DD
+ * @returns Formatted date string
+ */
+export const getLastWeekFormatDate = (): string => {
+  return dayjs().subtract(7, 'day').format('YYYY-MM-DD')
+}
+
+/**
+ * Truncate text to a maximum length
+ * @param text - Text to truncate
+ * @param maxLength - Maximum length
+ * @returns Truncated text with ellipsis if needed
+ */
+export const truncateText = (text: string, maxLength: number): string => {
+  if (!text) return ''
+  return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
 }

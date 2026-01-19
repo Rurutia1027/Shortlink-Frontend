@@ -7,17 +7,24 @@ export interface ApiResponse<T = any> {
 }
 
 export interface PaginatedResponse<T> {
-  list: T[]
+  list?: T[]
+  records?: T[]
   total: number
-  page: number
-  pageSize: number
+  page?: number
+  current?: number
+  pageSize?: number
+  size?: number
 }
 
 // User Types
 export interface User {
-  id: string
+  id?: string
   username: string
   email?: string
+  mail?: string
+  phone?: string
+  realName?: string
+  password?: string
   createdAt?: string
 }
 
@@ -40,10 +47,13 @@ export interface RegisterRequest {
 
 // Group Types
 export interface Group {
-  id: string
+  id?: string
+  gid?: string
   name: string
+  title?: string
   description?: string
   sortOrder?: number
+  shortLinkCount?: number | null
   createdAt?: string
   updatedAt?: string
 }
@@ -61,18 +71,35 @@ export interface UpdateGroupRequest {
 
 // Short Link Types
 export interface ShortLink {
-  id: string
-  shortCode: string
-  originalUrl: string
+  id?: string
+  gid?: string
+  shortCode?: string
+  shortUri?: string
+  fullShortUrl?: string
+  domain?: string
+  originalUrl?: string
+  originUrl?: string
   title?: string
+  describe?: string
   description?: string
   groupId?: string
   groupName?: string
   visitCount?: number
   status?: 'active' | 'deleted'
   createdAt?: string
+  createTime?: string
   updatedAt?: string
   icon?: string
+  favicon?: string
+  validDate?: string
+  validDateType?: number
+  enableStatus?: number
+  todayPv?: number
+  totalPv?: number
+  todayUv?: number
+  totalUv?: number
+  todayUip?: number
+  totalUip?: number
 }
 
 export interface CreateShortLinkRequest {
@@ -103,10 +130,14 @@ export interface UpdateShortLinkRequest {
 export interface ShortLinkListParams {
   page?: number
   pageSize?: number
+  current?: number
+  size?: number
+  gid?: string | null
   groupId?: string
   keyword?: string
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
+  orderTag?: string | null
 }
 
 // Analytics Types
