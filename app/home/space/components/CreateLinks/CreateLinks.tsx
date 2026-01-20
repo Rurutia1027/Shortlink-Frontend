@@ -212,6 +212,7 @@ export default function CreateLinks({
         <Form.Item
           label="Redirect URLs"
           name="originUrls"
+          extra={<span style={{ fontSize: '12px' }}>{`${originUrlRows}/${maxRows}`}</span>}
           rules={[
             { required: true, message: 'Please enter URLs' },
             {
@@ -243,12 +244,12 @@ export default function CreateLinks({
             placeholder="Please enter links starting with http:// or https://, one per line, maximum 100 lines"
             onChange={(e) => handleOriginUrlsChange(e.target.value)}
           />
-          <span style={{ fontSize: '12px' }}>{`${originUrlRows}/${maxRows}`}</span>
         </Form.Item>
 
         <Form.Item
           label="Descriptions"
           name="describes"
+          extra={<span style={{ fontSize: '12px' }}>{`${describeRows}/${maxRows}`}</span>}
           rules={[
             { required: true, message: 'Please enter descriptions' },
             {
@@ -285,7 +286,6 @@ export default function CreateLinks({
             placeholder="Please enter descriptions, one per line, description rows should match URL rows"
             onChange={(e) => handleDescribesChange(e.target.value)}
           />
-          <span style={{ fontSize: '12px' }}>{`${describeRows}/${maxRows}`}</span>
         </Form.Item>
 
         <Form.Item
