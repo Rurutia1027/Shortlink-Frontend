@@ -227,6 +227,7 @@ export default function EditLink({
         <Form.Item
           label="Description"
           name="describe"
+          extra={<span style={{ fontSize: '12px' }}>{`${describeRows}/${maxRows}`}</span>}
           rules={[
             { required: true, message: 'Please enter description' },
             {
@@ -254,7 +255,6 @@ export default function EditLink({
               onChange={(e) => handleDescribeChange(e.target.value)}
             />
           </Spin>
-          <span style={{ fontSize: '12px' }}>{`${describeRows}/${maxRows}`}</span>
         </Form.Item>
 
         <Form.Item
