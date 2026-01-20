@@ -251,8 +251,7 @@ describe('CreateLink Component - Basic Rendering', () => {
         it('renders date picker when validity period is Custom', () => {
             // This test will need user interaction to change radio, so we'll test the conditional rendering
             // The date picker should not be visible initially
-            render(<CreateLink groupInfo={mockGroups} />)
-      
+            render(<CreateLink groupInfo={mockGroups} />)      
             const datePicker = screen.queryByTestId('date-picker-valid-date')
             expect(datePicker).not.toBeInTheDocument()
         })
@@ -266,5 +265,6 @@ describe('CreateLink Component - Basic Rendering', () => {
         const alert = screen.queryByText(/Link will automatically redirect to 404 page after expiration!/)
         expect(alert).not.toBeInTheDocument()
         })
-  })
+    })
 })
+
