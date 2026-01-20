@@ -81,9 +81,10 @@ describe('LineChart Component', () => {
   })
 
   it('handles data with missing fields', () => {
+    // Provide all required fields, but some with zero values to simulate missing data
     const incompleteData = [
-      { date: '2024-01-01', pv: 100 },
-      { date: '2024-01-02', uv: 75 },
+      { date: '2024-01-01', pv: 100, uv: 0, uip: 0 },
+      { date: '2024-01-02', pv: 0, uv: 75, uip: 0 },
     ]
     
     render(<LineChart data={incompleteData} />)
