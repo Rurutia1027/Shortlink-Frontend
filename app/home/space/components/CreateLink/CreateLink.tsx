@@ -243,6 +243,7 @@ export default function CreateLink({
         <Form.Item
           label="Description"
           name="describe"
+          extra={<span style={{ fontSize: '12px' }}>{`Will create ${describeRows} short link(s)`}</span>}
           rules={[
             { required: true, message: 'Please enter description' },
             {
@@ -276,7 +277,6 @@ export default function CreateLink({
               onChange={(e) => handleDescribeChange(e.target.value)}
             />
           </Spin>
-          <span style={{ fontSize: '12px' }}>{`Will create ${describeRows} short link(s)`}</span>
         </Form.Item>
 
         <Form.Item
