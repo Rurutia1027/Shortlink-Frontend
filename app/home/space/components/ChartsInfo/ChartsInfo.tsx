@@ -371,7 +371,7 @@ const ChartsInfo = forwardRef<ChartsInfoRef, ChartsInfoProps>(
 
                   {/* 访问设备 */}
                   <TitleContent className={styles.chartItem} title="访问设备" style={{ width: '390px' }}>
-                    <ProgressPie labels={['电脑', '移动设备']} data={deviceList} />
+                    <ProgressPie labels={['Computer', 'Mobile Device']} data={deviceList} />
                   </TitleContent>
                 </div>
               ),
