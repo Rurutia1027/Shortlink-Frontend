@@ -62,23 +62,28 @@ export async function renderComponentToImage(
     // which supports Portals in jsdom environment
     if (options?.usePortal) {
       // Clear any previous renders
-      document.body.innerHTML = ''
+      if (typeof document !== 'undefined') {
+        document.body.innerHTML = ''
+      }
       
       // Render component using React Testing Library (supports Portals)
-      const { container } = render(component)
+      const { container, unmount } = render(component)
       
-      // Get the root container HTML
+      // Wait a bit for Portal to render (Ant Design Modals render to document.body)
+      await new Promise(resolve => setTimeout(resolve, 200))
+      
+      // Get root container HTML
       const rootHTML = container.innerHTML
       
       // Get Portal content from document.body (where Ant Design Modals render)
-      // Note: We need to wait a bit for Portal to render
-      await new Promise(resolve => setTimeout(resolve, 100))
+      const bodyHTML = typeof document !== 'undefined' ? document.body.innerHTML : ''
       
-      // Get all body content (including Portal)
-      const bodyHTML = document.body.innerHTML
+      // Clean up
+      unmount()
       
-      // Combine: root content + portal content
-      htmlString = bodyHTML
+      // Portal content is appended to body, so we need to extract just the portal part
+      // The root container is typically inside body, so we get everything
+      htmlString = bodyHTML || rootHTML
     } else {
       // For regular components, use renderToString (faster)
       htmlString = renderToString(component)

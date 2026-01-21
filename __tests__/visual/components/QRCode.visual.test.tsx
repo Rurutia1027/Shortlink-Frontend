@@ -31,7 +31,7 @@ describe('QRCode Visual Regression', () => {
         const image = await renderComponentToImage(component, {
         width: 500,
         height: 500,
-        usePortal: true, // QRCode uses Modal (Portal)
+        usePortal: true,
         })
 
         expect(image).toMatchImageSnapshot({
@@ -54,7 +54,7 @@ describe('QRCode Visual Regression', () => {
         const image = await renderComponentToImage(component, {
         width: 600,
         height: 600,
-        usePortal: true, // QRCode uses Modal (Portal)
+        usePortal: true,
         })
 
         expect(image).toMatchImageSnapshot({
@@ -77,7 +77,7 @@ describe('QRCode Visual Regression', () => {
         const image = await renderComponentToImage(component, {
         width: 500,
         height: 600,
-        usePortal: true, // QRCode uses Modal (Portal)
+        usePortal: true,
         })
 
         expect(image).toMatchImageSnapshot({
