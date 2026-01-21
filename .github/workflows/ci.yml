@@ -186,10 +186,8 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        run: npm ci
-        env:
-          NODE_ENV: development # test coverage depends on mock server/msw and it is declared in the dev deps
-
+        run: npm ci --include=dev
+      
       - name: Run All Tests with Coverage
         run: npm run test:ci
         env:
