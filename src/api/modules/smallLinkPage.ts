@@ -30,25 +30,42 @@ export const getShortLinks = async (params?: ShortLinkListParams): Promise<Pagin
 }
 
 // Create single short link (POST /api/shortlink/v1/links/create)
-// Backend endpoint: http://localhost:8080/api/shortlink/v1/links/create
+// Note: This endpoint has a different base path than the main API
 export const addSmallLink = async (data: CreateShortLinkRequest): Promise<ApiResponse<ShortLink>> => {
-  // Use full URL since backend endpoint differs from base URL
-  // TODO: Update API_BASE_URL or create separate client when backend is fully integrated
-  const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
-  const fullUrl = `${backendUrl}/api/shortlink/v1/links/create`
-  
-  // Use axios directly with full URL and auth headers
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
   const token = getToken()
   const username = getUsername()
-  const response = await axios.post<ApiResponse<ShortLink>>(fullUrl, data, {
-    headers: {
-      'Content-Type': 'application/json',
-      Token: token || '',
-      Username: username || '',
-    },
-    timeout: 15000,
-  })
-  return response.data
+  
+  // If API base URL is set (using real backend), construct full URL
+  // Otherwise, use relative path (will be intercepted by MSW)
+  if (apiBaseUrl) {
+    // Real backend: construct full URL
+    // Extract base URL (remove /api/shortlink/admin/v1 suffix if present)
+    const backendUrl = apiBaseUrl.replace(/\/api\/shortlink\/admin\/v1$/, '') || 'http://localhost:8080'
+    const fullUrl = `${backendUrl}/api/shortlink/v1/links/create`
+    
+    // Use axios directly with full URL and auth headers
+    const response = await axios.post<ApiResponse<ShortLink>>(fullUrl, data, {
+      headers: {
+        'Content-Type': 'application/json',
+        Token: token || '',
+        Username: username || '',
+      },
+      timeout: 15000,
+    })
+    return response.data
+  } else {
+    // Mock Server: use relative path (MSW will intercept /api/shortlink/v1/links/create)
+    const response = await axios.post<ApiResponse<ShortLink>>('/api/shortlink/v1/links/create', data, {
+      headers: {
+        'Content-Type': 'application/json',
+        Token: token || '',
+        Username: username || '',
+      },
+      timeout: 15000,
+    })
+    return response.data
+  }
 }
 
 // Alias for compatibility

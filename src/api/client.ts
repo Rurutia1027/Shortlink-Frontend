@@ -4,9 +4,9 @@ import { isNotEmpty } from '@/src/lib/utils'
 import { message } from 'antd'
 
 // Get API base URL from environment variable
-// Match Vue implementation: baseURL should be '/api/short-link/admin/v1'
+// Match Vue implementation: baseURL should be '/api/shortlink/admin/v1'
 // If NEXT_PUBLIC_API_BASE_URL is set, it should include the full path
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/short-link/admin/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/shortlink/admin/v1'
 
 // Create Axios instance
 const apiClient: AxiosInstance = axios.create({
