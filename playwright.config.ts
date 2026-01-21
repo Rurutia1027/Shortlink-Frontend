@@ -43,10 +43,6 @@ export default defineConfig({
     
     // Viewport size for visual regression tests
     viewport: { width: 1280, height: 720 },
-    
-    // Visual comparison options
-    // https://playwright.dev/docs/test-screenshots#visual-comparison
-    screenshot: 'only-on-failure',
   },
   
   // Configure projects for different browsers
