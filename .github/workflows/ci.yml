@@ -195,7 +195,7 @@ jobs:
         run: npx playwright install chromium 
       
       - name: Run All Tests with Coverage
-        run: npm run test:ci
+        run: npm run test:ci -- -u
         env:
           CI: true
           # NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api' }}
