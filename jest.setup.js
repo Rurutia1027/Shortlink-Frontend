@@ -1,9 +1,5 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
-import { toMatchImageSnapshot } from 'jest-image-snapshot'
-
-// Extend Jest with visual regression matcher
-expect.extend({ toMatchImageSnapshot })
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
