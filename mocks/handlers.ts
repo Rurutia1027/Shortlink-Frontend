@@ -115,8 +115,8 @@ const createResponse = <T>(data: T, code = 200, message = 'Success'): ApiRespons
 
 // User API Handlers
 export const userHandlers = [
-  // POST /api/short-link/admin/v1/user/login
-  http.post('/api/short-link/admin/v1/user/login', async ({ request }) => {
+  // POST /api/shortlink/admin/v1/user/login
+  http.post('/api/shortlink/admin/v1/user/login', async ({ request }) => {
     const body = (await request.json()) as LoginRequest
 
     if (body.username === 'testuser' && body.password === 'password') {
@@ -134,8 +134,8 @@ export const userHandlers = [
     )
   }),
 
-  // POST /api/short-link/admin/v1/user
-  http.post('/api/short-link/admin/v1/user', async ({ request }) => {
+  // POST /api/shortlink/admin/v1/user
+  http.post('/api/shortlink/admin/v1/user', async ({ request }) => {
     const body = (await request.json()) as RegisterRequest
 
     // Check if username already exists
@@ -157,8 +157,8 @@ export const userHandlers = [
     return HttpResponse.json(createResponse(newUser))
   }),
 
-  // PUT /api/short-link/admin/v1/user
-  http.put('/api/short-link/admin/v1/user', async ({ request }) => {
+  // PUT /api/shortlink/admin/v1/user
+  http.put('/api/shortlink/admin/v1/user', async ({ request }) => {
     const body = (await request.json()) as Partial<User>
     const userIndex = mockUsers.findIndex((u) => u.id === body.id)
 
@@ -170,13 +170,13 @@ export const userHandlers = [
     return HttpResponse.json(createResponse(mockUsers[userIndex]))
   }),
 
-  // DELETE /api/short-link/admin/v1/user/logout
-  http.delete('/api/short-link/admin/v1/user/logout', () => {
+  // DELETE /api/shortlink/admin/v1/user/logout
+  http.delete('/api/shortlink/admin/v1/user/logout', () => {
     return HttpResponse.json(createResponse(null))
   }),
 
-  // GET /api/short-link/admin/v1/user/has-username
-  http.get('/api/short-link/admin/v1/user/has-username', ({ request }) => {
+  // GET /api/shortlink/admin/v1/user/has-username
+  http.get('/api/shortlink/admin/v1/user/has-username', ({ request }) => {
     const url = new URL(request.url)
     const username = url.searchParams.get('username')
 
@@ -184,8 +184,8 @@ export const userHandlers = [
     return HttpResponse.json(createResponse({ available: !exists, success: true }))
   }),
 
-  // GET /api/short-link/admin/v1/actual/user/:username
-  http.get('/api/short-link/admin/v1/actual/user/:username', ({ params }) => {
+  // GET /api/shortlink/admin/v1/actual/user/:username
+  http.get('/api/shortlink/admin/v1/actual/user/:username', ({ params }) => {
     const { username } = params
     const user = mockUsers.find((u) => u.username === username)
 
@@ -196,8 +196,8 @@ export const userHandlers = [
     return HttpResponse.json(createResponse(user))
   }),
 
-  // GET /api/short-link/admin/v1/user/info
-  http.get('/api/short-link/admin/v1/user/info', () => {
+  // GET /api/shortlink/admin/v1/user/info
+  http.get('/api/shortlink/admin/v1/user/info', () => {
     // Return first user as current user
     return HttpResponse.json(createResponse(mockUsers[0]))
   }),
@@ -205,13 +205,13 @@ export const userHandlers = [
 
 // Group API Handlers
 export const groupHandlers = [
-  // GET /api/short-link/admin/v1/group
-  http.get('/api/short-link/admin/v1/group', () => {
+  // GET /api/shortlink/admin/v1/group
+  http.get('/api/shortlink/admin/v1/group', () => {
     return HttpResponse.json(createResponse(mockGroups))
   }),
 
-  // POST /api/short-link/admin/v1/group
-  http.post('/api/short-link/admin/v1/group', async ({ request }) => {
+  // POST /api/shortlink/admin/v1/group
+  http.post('/api/shortlink/admin/v1/group', async ({ request }) => {
     const body = (await request.json()) as CreateGroupRequest
 
     const newGroup: Group = {
@@ -230,8 +230,8 @@ export const groupHandlers = [
     return HttpResponse.json(createResponse(newGroup))
   }),
 
-  // PUT /api/short-link/admin/v1/group
-  http.put('/api/short-link/admin/v1/group', async ({ request }) => {
+  // PUT /api/shortlink/admin/v1/group
+  http.put('/api/shortlink/admin/v1/group', async ({ request }) => {
     const body = (await request.json()) as UpdateGroupRequest
     const groupIndex = mockGroups.findIndex((g) => g.id === body.id)
 
@@ -243,8 +243,8 @@ export const groupHandlers = [
     return HttpResponse.json(createResponse(mockGroups[groupIndex]))
   }),
 
-  // DELETE /api/short-link/admin/v1/group
-  http.delete('/api/short-link/admin/v1/group', ({ request }) => {
+  // DELETE /api/shortlink/admin/v1/group
+  http.delete('/api/shortlink/admin/v1/group', ({ request }) => {
     const url = new URL(request.url)
     const id = url.searchParams.get('id')
 
@@ -257,26 +257,26 @@ export const groupHandlers = [
     return HttpResponse.json(createResponse(null))
   }),
 
-  // POST /api/short-link/admin/v1/group/sort
-  http.post('/api/short-link/admin/v1/group/sort', () => {
+  // POST /api/shortlink/admin/v1/group/sort
+  http.post('/api/shortlink/admin/v1/group/sort', () => {
     return HttpResponse.json(createResponse(null))
   }),
 
-  // GET /api/short-link/admin/v1/stats/group
-  http.get('/api/short-link/admin/v1/stats/group', () => {
+  // GET /api/shortlink/admin/v1/stats/group
+  http.get('/api/shortlink/admin/v1/stats/group', () => {
     return HttpResponse.json(createResponse({ total: mockGroups.length }))
   }),
 
-  // GET /api/short-link/admin/v1/stats/access-record/group
-  http.get('/api/short-link/admin/v1/stats/access-record/group', () => {
+  // GET /api/shortlink/admin/v1/stats/access-record/group
+  http.get('/api/shortlink/admin/v1/stats/access-record/group', () => {
     return HttpResponse.json(createResponse({ records: [], total: 0 }))
   }),
 ]
 
 // Short Link API Handlers
 export const shortLinkHandlers = [
-  // GET /api/short-link/admin/v1/page
-  http.get('/api/short-link/admin/v1/page', ({ request }) => {
+  // GET /api/shortlink/admin/v1/page
+  http.get('/api/shortlink/admin/v1/page', ({ request }) => {
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')
     const pageSize = parseInt(url.searchParams.get('pageSize') || '10')
@@ -354,8 +354,8 @@ export const shortLinkHandlers = [
     return HttpResponse.json(createResponse(newLink))
   }),
 
-  // POST /api/short-link/admin/v1/create/batch
-  http.post('/api/short-link/admin/v1/create/batch', async ({ request }) => {
+  // POST /api/shortlink/admin/v1/create/batch
+  http.post('/api/shortlink/admin/v1/create/batch', async ({ request }) => {
     const body = (await request.json()) as BatchCreateShortLinkRequest
 
     const urls = body.originUrls || []
@@ -397,8 +397,8 @@ export const shortLinkHandlers = [
     })
   }),
 
-  // POST /api/short-link/admin/v1/update
-  http.post('/api/short-link/admin/v1/update', async ({ request }) => {
+  // POST /api/shortlink/admin/v1/update
+  http.post('/api/shortlink/admin/v1/update', async ({ request }) => {
     const body = (await request.json()) as UpdateShortLinkRequest
     const linkIndex = mockShortLinks.findIndex(
       (link) => link.id === body.id || link.fullShortUrl === body.fullShortUrl
@@ -427,8 +427,8 @@ export const shortLinkHandlers = [
     return HttpResponse.json(createResponse(mockShortLinks[linkIndex]))
   }),
 
-  // GET /api/short-link/admin/v1/title
-  http.get('/api/short-link/admin/v1/title', ({ request }) => {
+  // GET /api/shortlink/admin/v1/title
+  http.get('/api/shortlink/admin/v1/title', ({ request }) => {
     const url = new URL(request.url)
     const urlParam = url.searchParams.get('url')
 
@@ -437,8 +437,8 @@ export const shortLinkHandlers = [
     return HttpResponse.json(createResponse({ title }))
   }),
 
-  // POST /api/short-link/admin/v1/recycle-bin/save
-  http.post('/api/short-link/admin/v1/recycle-bin/save', async ({ request }) => {
+  // POST /api/shortlink/admin/v1/recycle-bin/save
+  http.post('/api/shortlink/admin/v1/recycle-bin/save', async ({ request }) => {
     const body = (await request.json()) as { id?: string; gid?: string; fullShortUrl?: string }
     const linkIndex = mockShortLinks.findIndex(
       (link) => link.id === body.id || link.gid === body.gid || link.fullShortUrl === body.fullShortUrl
@@ -451,8 +451,8 @@ export const shortLinkHandlers = [
     return HttpResponse.json(createResponse(null))
   }),
 
-  // GET /api/short-link/admin/v1/recycle-bin/page
-  http.get('/api/short-link/admin/v1/recycle-bin/page', ({ request }) => {
+  // GET /api/shortlink/admin/v1/recycle-bin/page
+  http.get('/api/shortlink/admin/v1/recycle-bin/page', ({ request }) => {
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')
     const pageSize = parseInt(url.searchParams.get('pageSize') || '10')
@@ -475,8 +475,8 @@ export const shortLinkHandlers = [
     return HttpResponse.json(createResponse(response))
   }),
 
-  // POST /api/short-link/admin/v1/recycle-bin/recover
-  http.post('/api/short-link/admin/v1/recycle-bin/recover', async ({ request }) => {
+  // POST /api/shortlink/admin/v1/recycle-bin/recover
+  http.post('/api/shortlink/admin/v1/recycle-bin/recover', async ({ request }) => {
     const body = (await request.json()) as { id?: string; gid?: string; fullShortUrl?: string }
     const linkIndex = mockShortLinks.findIndex(
       (link) => link.id === body.id || link.gid === body.gid || link.fullShortUrl === body.fullShortUrl
@@ -489,8 +489,8 @@ export const shortLinkHandlers = [
     return HttpResponse.json(createResponse(null))
   }),
 
-  // POST /api/short-link/admin/v1/recycle-bin/remove
-  http.post('/api/short-link/admin/v1/recycle-bin/remove', async ({ request }) => {
+  // POST /api/shortlink/admin/v1/recycle-bin/remove
+  http.post('/api/shortlink/admin/v1/recycle-bin/remove', async ({ request }) => {
     const body = (await request.json()) as { id?: string; gid?: string; fullShortUrl?: string }
     const linkIndex = mockShortLinks.findIndex(
       (link) => link.id === body.id || link.gid === body.gid || link.fullShortUrl === body.fullShortUrl
@@ -503,8 +503,8 @@ export const shortLinkHandlers = [
     return HttpResponse.json(createResponse(null))
   }),
 
-  // GET /api/short-link/admin/v1/stats
-  http.get('/api/short-link/admin/v1/stats', ({ request }) => {
+  // GET /api/shortlink/admin/v1/stats
+  http.get('/api/shortlink/admin/v1/stats', ({ request }) => {
     const url = new URL(request.url)
     const gid = url.searchParams.get('gid')
     const startDate = url.searchParams.get('startDate')
@@ -556,8 +556,8 @@ export const shortLinkHandlers = [
     return HttpResponse.json(createResponse(analytics))
   }),
 
-  // GET /api/short-link/admin/v1/stats/access-record
-  http.get('/api/short-link/admin/v1/stats/access-record', ({ request }) => {
+  // GET /api/shortlink/admin/v1/stats/access-record
+  http.get('/api/shortlink/admin/v1/stats/access-record', ({ request }) => {
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')
     const pageSize = parseInt(url.searchParams.get('pageSize') || '10')

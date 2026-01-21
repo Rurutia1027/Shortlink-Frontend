@@ -15,8 +15,13 @@ const customJestConfig = {
     '^@/app/(.*)$': '<rootDir>/app/$1',
   },
   testMatch: [
-    '**/__tests__/**/*.[jt]s?(x)',
+    '**/__tests__/**/*.(test|spec).[jt]s?(x)', // Only match test files in __tests__
     '**/?(*.)+(spec|test).[jt]s?(x)',
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/.next/',
+    '/helpers/', // Ignore helper directories
   ],
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
