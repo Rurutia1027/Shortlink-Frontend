@@ -4,41 +4,43 @@ import QRCode from '@/app/home/space/components/QRCode/QRCode'
 import { renderComponentToImage, initBrowser, closeBrowser } from '../helpers/render-to-image'
 
 /**
- * Visual Regression Tests for ORCode Component 
+ * Visual Regression Tests for QRCode Component
  * 
- * These tests capture visual snapshots of QRCode modal component
- * in different states and compare them against baseline images. 
-*/
+ * These tests capture visual snapshots of the QRCode modal component
+ * in different states and compare them against baseline images.
+ */
 
-describe('QRCode Visual Regression', () => { 
-    beforeAll(async () => { 
+describe('QRCode Visual Regression', () => {
+    beforeAll(async () => {
         await initBrowser()
     })
 
-    afterAll(async () => { 
+    afterAll(async () => {
         await closeBrowser()
     })
 
-    it('renders QR code modal correctly', async () => { 
+    it('renders QR code modal correctly', async () => {
         const component = (
-            <QRCode
-                url="https://example.com/test-url"
-                visible={ true }
-                onClose={jest.fn()}
-            />
+        <QRCode
+            url="https://example.com/test-url"
+            visible={true}
+            onClose={jest.fn()}
+        />
         )
 
         const image = await renderComponentToImage(component, {
-            width: 500, 
-            height: 500
+        width: 500,
+        height: 500,
+        usePortal: true, // QRCode uses Modal (Portal)
         })
 
         expect(image).toMatchImageSnapshot({
-            customSnapshotIdentifier: 'QRCode-modal-open',
-            failureThreshold: 0.01, 
-            failureThresholdType: 'percent'
+        customSnapshotIdentifier: 'QRCode-modal-open',
+        failureThreshold: 0.01,
+        failureThresholdType: 'percent',
         })
     })
+
     it('renders QR code with custom size', async () => {
         const component = (
         <QRCode
@@ -52,6 +54,7 @@ describe('QRCode Visual Regression', () => {
         const image = await renderComponentToImage(component, {
         width: 600,
         height: 600,
+        usePortal: true, // QRCode uses Modal (Portal)
         })
 
         expect(image).toMatchImageSnapshot({
@@ -74,6 +77,7 @@ describe('QRCode Visual Regression', () => {
         const image = await renderComponentToImage(component, {
         width: 500,
         height: 600,
+        usePortal: true, // QRCode uses Modal (Portal)
         })
 
         expect(image).toMatchImageSnapshot({

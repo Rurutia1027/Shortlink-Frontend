@@ -1,5 +1,6 @@
 import React from 'react'
 import { renderToString } from 'react-dom/server'
+import { render } from '@testing-library/react'
 import { chromium, Browser, Page } from 'playwright'
 import fs from 'fs'
 import path from 'path'
@@ -45,6 +46,7 @@ export async function renderComponentToImage(
     width?: number
     height?: number
     backgroundColor?: string
+    usePortal?: boolean // Set to true for components with Portals (e.g., Modals)
   }
 ): Promise<Buffer> {
   if (!browser) {
@@ -54,8 +56,33 @@ export async function renderComponentToImage(
   const page = await browser!.newPage()
   
   try {
-    // Render component to HTML string
-    const htmlString = renderToString(component)
+    let htmlString: string
+    
+    // For components with Portals (like Modals), use React Testing Library
+    // which supports Portals in jsdom environment
+    if (options?.usePortal) {
+      // Clear any previous renders
+      document.body.innerHTML = ''
+      
+      // Render component using React Testing Library (supports Portals)
+      const { container } = render(component)
+      
+      // Get the root container HTML
+      const rootHTML = container.innerHTML
+      
+      // Get Portal content from document.body (where Ant Design Modals render)
+      // Note: We need to wait a bit for Portal to render
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Get all body content (including Portal)
+      const bodyHTML = document.body.innerHTML
+      
+      // Combine: root content + portal content
+      htmlString = bodyHTML
+    } else {
+      // For regular components, use renderToString (faster)
+      htmlString = renderToString(component)
+    }
     
     // Create full HTML document with styles
     const fullHTML = `
@@ -87,10 +114,8 @@ export async function renderComponentToImage(
           <!-- Add Ant Design CSS if needed -->
           <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/antd@5.21.0/dist/reset.css">
         </head>
-        <body>
-          <div id="root" style="padding: 20px;">
-            ${htmlString}
-          </div>
+        <body style="padding: 20px;">
+          ${options?.usePortal ? htmlString : `<div id="root">${htmlString}</div>`}
         </body>
       </html>
     `
