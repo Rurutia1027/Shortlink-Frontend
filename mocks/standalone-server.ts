@@ -89,7 +89,9 @@ async function startServer() {
 
         // If no exact match, try pattern matching
         if (!handler) {
-          for (const [key, h] of routeMap.entries()) {
+          // Convert Map entries to array to avoid downlevelIteration issue
+          const routeEntries = Array.from(routeMap.entries())
+          for (const [key, h] of routeEntries) {
             const [handlerMethod, handlerPath] = key.split(':')
             if (handlerMethod !== method) continue
 
