@@ -3,7 +3,7 @@ import path from 'path'
 
 const config: StorybookConfig = {
   stories: [
-    '../app/**/*.stories.@(js|jsx|mjs|ts|tsx)',
+    '../app/**/*.stories.@(js|jsx|ts|tsx)',
     '../app/**/*.mdx',
   ],
   addons: [
@@ -13,7 +13,9 @@ const config: StorybookConfig = {
   ],
   framework: {
     name: '@storybook/nextjs',
-    options: {},
+    options: {
+      nextConfigPath: path.resolve(__dirname, '../next.config.mjs'),
+    },
   },
   staticDirs: ['../public'],
   typescript: {
