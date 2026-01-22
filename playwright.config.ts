@@ -73,13 +73,14 @@ export default defineConfig({
   
   // Run Storybook before starting the visual tests
   webServer: {
-    command: 'npm run build-storybook && npx serve storybook-static -p 6006',
+    // In CI, Storybook is pre-built, so we just serve the static files
+    // In local dev, build and serve
+    command: process.env.CI 
+      ? 'npx serve storybook-static -p 6006'
+      : 'npm run build-storybook && npx serve storybook-static -p 6006',
     url: 'http://localhost:6006',
     reuseExistingServer: !process.env.CI,
     timeout: 120000, // 2 minutes
-    // For development, you can also use:
-    // command: 'npm run storybook',
-    // url: 'http://localhost:6006',
   },
   
   // Expect options for visual comparisons
