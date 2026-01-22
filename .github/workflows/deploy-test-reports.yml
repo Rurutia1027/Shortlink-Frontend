@@ -2,7 +2,13 @@ name: Deploy Test Reports to GitHub Pages
 
 on:
   workflow_run:
+    # Monitor "Shortlink Frontend CI" workflow execution result
     workflows: ["Shortlink Frontend CI"]
+    # types: completed means current yml jobs will pending when all jobs in "Shortlink Frontend Ci" completed
+    # other options:
+    # - requested: workflow of "Shortlink Frontend CI" is triggered, will not pending on compelte results of all jobs in previous workflow
+    # - completed: workflow all jobs finish (no matter success or failure)
+    # - in_progress: during workflow in the state of processing 
     types:
       - completed
     branches:
