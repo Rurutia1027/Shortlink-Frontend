@@ -18,6 +18,12 @@ const config: StorybookConfig = {
     },
   },
   staticDirs: ['../public'],
+  // Enable buildStoriesJson for static builds to ensure stories are properly indexed
+  // This is critical for iframe.html to work correctly in static builds
+  features: {
+    buildStoriesJson: true, // Enable stories.json generation for static builds
+    storyStoreV7: true, // Use Storybook 7's new story store
+  },
   typescript: {
     check: false,
     reactDocgen: 'react-docgen-typescript',

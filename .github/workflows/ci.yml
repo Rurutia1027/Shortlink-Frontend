@@ -1,8 +1,5 @@
 name: Shortlink Frontend CI
 
-# This workflow name is referenced in deploy-test-reports.yml
-# If you change this name, update the workflow_run.workflows in deploy-test-reports.yml
-
 on:
   push:
     branches: [main, develop]
@@ -141,6 +138,15 @@ jobs:
     needs: [lint-and-typecheck, unit-tests, integration-tests]
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -162,9 +168,6 @@ jobs:
         run: npm run build-storybook
         env:
           CI: true
-
-      - name: Install serve (for serving Storybook static files)
-        run: npm install -g serve
 
       - name: Run Visual Regression Tests
         run: npm run test:visual
@@ -200,10 +203,47 @@ jobs:
           path: storybook-static/
           retention-days: 1
 
+      # Deploy Playwright reports to GitHub Pages
+      - name: Check Playwright Report Exists
+        id: check-report
+        if: always()
+        run: |
+          if [ -d "playwright-report" ] && [ -f "playwright-report/index.html" ]; then
+            echo "report-exists=true" >> $GITHUB_OUTPUT
+            echo "✅ Playwright report found"
+          else
+            echo "report-exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Playwright report not found - skipping deployment"
+          fi
+
+      - name: Setup Pages
+        if: steps.check-report.outputs.report-exists == 'true'
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages Artifact
+        if: steps.check-report.outputs.report-exists == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: playwright-report/
+
+      - name: Deploy to GitHub Pages
+        if: steps.check-report.outputs.report-exists == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Deployment Skipped
+        if: steps.check-report.outputs.report-exists != 'true'
+        run: |
+          echo "⚠️ Deployment skipped: Playwright report not available"
+          echo "This is normal if visual regression tests were skipped or failed before report generation"
+
   # ============================================
   # Note: E2E Tests are run in a separate repository
   # against deployed applications (K8s environment)
   # See TEST_DEPLOYMENT_STRATEGY.md for details
+  # 
+  # Playwright test reports are automatically deployed to GitHub Pages
+  # after visual regression tests complete (if report exists)
   # ============================================
 
   # ============================================
