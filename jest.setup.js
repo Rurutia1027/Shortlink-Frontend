@@ -61,3 +61,31 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: jest.fn(),
   })),
 })
+
+// Suppress known warnings in tests
+const originalError = console.error
+beforeAll(() => {
+  console.error = (...args) => {
+    // Suppress Ant Design Form.Item warnings (known issue in tests)
+    if (
+      typeof args[0] === 'string' &&
+      args[0].includes('[antd: Form.Item]')
+    ) {
+      return
+    }
+    // Suppress React SVG warnings (Recharts uses SVG elements)
+    if (
+      typeof args[0] === 'string' &&
+      (args[0].includes('The tag <stop> is unrecognized') ||
+       args[0].includes('is using incorrect casing'))
+    ) {
+      return
+    }
+    // Log other errors normally
+    originalError.call(console, ...args)
+  }
+})
+
+afterAll(() => {
+  console.error = originalError
+})
