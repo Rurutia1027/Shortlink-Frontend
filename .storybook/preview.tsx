@@ -1,4 +1,5 @@
 import type { Preview } from '@storybook/react'
+import React from 'react'
 import { ConfigProvider } from 'antd'
 import '../app/globals.css' // Import global CSS (includes Tailwind)
 
