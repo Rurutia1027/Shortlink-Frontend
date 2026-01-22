@@ -3,7 +3,7 @@ import path from 'path'
 
 const config: StorybookConfig = {
   stories: [
-    '../app/**/*.stories.@(js|jsx|mjs|ts|tsx)',
+    '../app/**/*.stories.@(js|jsx|ts|tsx)',
     '../app/**/*.mdx',
   ],
   addons: [
@@ -13,9 +13,17 @@ const config: StorybookConfig = {
   ],
   framework: {
     name: '@storybook/nextjs',
-    options: {},
+    options: {
+      nextConfigPath: path.resolve(__dirname, '../next.config.mjs'),
+    },
   },
   staticDirs: ['../public'],
+  // Enable buildStoriesJson for static builds to ensure stories are properly indexed
+  // This is critical for iframe.html to work correctly in static builds
+  features: {
+    buildStoriesJson: true, // Enable stories.json generation for static builds
+    storyStoreV7: true, // Use Storybook 7's new story store
+  },
   typescript: {
     check: false,
     reactDocgen: 'react-docgen-typescript',

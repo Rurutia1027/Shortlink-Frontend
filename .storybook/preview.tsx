@@ -36,11 +36,13 @@ const preview: Preview = {
     nextjs: {
       appDirectory: true,
     },
+    // Ensure stories load correctly in static builds
+    layout: 'fullscreen',
   },
   decorators: [
     (Story) => (
       <ConfigProvider>
-        <div style={{ padding: '20px' }}>
+        <div style={{ padding: '20px', minHeight: '100vh' }}>
           <Story />
         </div>
       </ConfigProvider>

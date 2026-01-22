@@ -1,96 +1,77 @@
 import { defineConfig, devices } from '@playwright/test'
+import fs from 'fs'
+import path from 'path'
+
+const STORYBOOK_DIR = path.resolve(__dirname, 'storybook-static')
 
 /**
- * Playwright Configuration for Visual Regression Tests with Storybook
- * 
- * This configuration runs visual regression tests against Storybook stories.
- * Stories are accessed via Storybook's iframe API for isolated component testing.
+ * Playwright config for Storybook visual regression tests
+ * CI contract:
+ *   - storybook-static MUST exist before Playwright runs
+ *   - Playwright only serves & tests, never builds
  */
+
+if (!fs.existsSync(STORYBOOK_DIR)) {
+  throw new Error(
+    'storybook-static does not exist. ' +
+    'You must run `npm run build-storybook` before `npm run test:visual`.'
+  )
+}
 
 export default defineConfig({
   testDir: './__tests__/visual',
-  
-  // Run visual tests sequentially to avoid race conditions
+
   fullyParallel: false,
   workers: 1,
-  
-  // Fail the build on CI if you accidentally left test.only in the source code
+
   forbidOnly: !!process.env.CI,
-  
-  // Retry on CI only
   retries: process.env.CI ? 2 : 0,
-  
-  // Reporter to use
+
   reporter: [
     ['html'],
     ['json', { outputFile: 'playwright-report/visual-results.json' }],
     ['list'],
   ],
-  
-  // Shared settings for all projects
+
   use: {
-    // Base URL for Storybook
     baseURL: 'http://localhost:6006',
-    
-    // Collect trace when retrying the failed test
-    trace: 'on-first-retry',
-    
-    // Screenshot on failure
-    screenshot: 'only-on-failure',
-    
-    // Video on failure
-    video: 'retain-on-failure',
-    
-    // Viewport size for visual regression tests
     viewport: { width: 1280, height: 720 },
+    // Enable video and screenshots for all tests to verify component rendering
+    trace: 'on-first-retry',
+    screenshot: 'on', // Capture screenshots for all tests
+    video: 'on', // Record video for all tests to see component rendering
   },
-  
-  // Configure projects for different browsers
+
   projects: [
     {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // Visual regression test configuration
-        screenshot: 'only-on-failure',
-        trace: 'on-first-retry',
       },
     },
-    // Uncomment to test in multiple browsers
-    // {
-    //   name: 'firefox',
-    //   use: {
-    //     ...devices['Desktop Firefox'],
-    //   },
-    // },
-    // {
-    //   name: 'webkit',
-    //   use: {
-    //     ...devices['Desktop Safari'],
-    //   },
-    // },
   ],
-  
-  // Run Storybook before starting the visual tests
+
   webServer: {
-    // In CI, Storybook is pre-built, so we just serve the static files
-    // In local dev, build and serve
-    command: process.env.CI 
-      ? 'npx serve storybook-static -p 6006'
-      : 'npm run build-storybook && npx serve storybook-static -p 6006',
+    // Use locally installed serve from node_modules/.bin/serve
+    // This avoids npx permission issues and uses the package from devDependencies
+    // Works in both CI and local environments
+    // Note: serve v14 doesn't support --no-open or --no-clipboard flags
+    command: 'node_modules/.bin/serve storybook-static -p 6006',
     url: 'http://localhost:6006',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000, // 2 minutes
+    timeout: 120_000,
+    reuseExistingServer: !process.env.CI, // Reuse server locally, always start fresh in CI
+    stdout: 'pipe',
+    stderr: 'pipe',
+    // Wait for server to be ready by checking if index.html is accessible
+    // This ensures Storybook is fully loaded before tests start
+    ignoreHTTPSErrors: true,
   },
-  
-  // Expect options for visual comparisons
+
   expect: {
-    // Threshold for pixel comparison (0-1, where 0 is exact match)
     toHaveScreenshot: {
       threshold: 0.2,
       maxDiffPixels: 100,
     },
-    // Threshold for snapshot comparison
     toMatchSnapshot: {
       threshold: 0.2,
     },
