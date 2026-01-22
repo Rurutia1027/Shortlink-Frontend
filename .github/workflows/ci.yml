@@ -189,6 +189,64 @@ jobs:
           retention-days: 1
 
   # ============================================
+  # Phase 6: Visual Regression Tests (Storybook + Playwright)
+  # ============================================
+  visual-regression-tests:
+    name: Visual Regression Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [build-and-coverage]
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build Storybook
+        run: npm run build-storybook
+        env:
+          CI: true
+
+      - name: Install serve (for serving Storybook static files)
+        run: npm install -g serve
+
+      - name: Run Visual Regression Tests
+        run: npm run test:visual
+        env:
+          CI: true
+
+      - name: Upload Visual Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-test-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+      - name: Upload Storybook Build
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: storybook-static
+          path: storybook-static/
+          retention-days: 1
+
+  # ============================================
   # Note: E2E Tests are run in a separate repository
   # against deployed applications (K8s environment)
   # See TEST_DEPLOYMENT_STRATEGY.md for details
@@ -205,7 +263,8 @@ jobs:
       unit-tests,
       integration-tests,
       smoke-tests,
-      build-and-coverage
+      build-and-coverage,
+      visual-regression-tests
     ]
     if: always()
     
