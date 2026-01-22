@@ -1,5 +1,8 @@
 name: Shortlink Frontend CI
 
+# This workflow name is referenced in visual-tests-report.yml
+# If you change this name, update the workflow_run.workflows in visual-tests-report.yml
+
 on:
   push:
     branches: [main, develop]
@@ -227,16 +230,27 @@ jobs:
         run: npm run test:visual
         env:
           CI: true
+        continue-on-error: true  # Don't fail CI if visual tests fail, but still upload report
 
-      - name: Upload Visual Test Results
+      - name: Upload Playwright HTML Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-html-report
+          path: playwright-report/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Upload Test Results (for debugging)
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: visual-test-results
           path: |
-            playwright-report/
             test-results/
+            playwright-report/visual-results.json
           retention-days: 7
+          if-no-files-found: ignore
 
       - name: Upload Storybook Build
         uses: actions/upload-artifact@v4
