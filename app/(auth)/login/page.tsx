@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Form, Input, Button, Checkbox, message, Modal } from 'antd'
 import { useAuth } from '@/src/hooks/useAuth'
-import { setToken, setUsername } from '@/src/lib/auth'
+import { setToken, setUsername, removeToken, removeUsername } from '@/src/lib/auth'
 import { login as loginApi, addUser as registerApi, hasUsername } from '@/src/api'
+import { isSuccessCode } from '@/src/lib/utils'
 import type { LoginRequest, RegisterRequest } from '@/src/api/types'
 import styles from './login.module.css'
 
@@ -40,9 +41,11 @@ export default function LoginPage() {
   const handleLogin = async (values: LoginRequest) => {
     setLoading(true)
     try {
+      // login() from useAuth will handle the redirect automatically
       await login({ ...values, rememberMe })
-      message.success('Login successful!')
-      router.push('/home')
+      // Show success message (redirect happens inside login() with a small delay)
+      message.success('Login successful! Redirecting...')
+      // Note: window.location.href redirect is handled inside useAuth.login() with setTimeout
     } catch (error: any) {
       if (error.message === 'User already logged in' || error.message?.includes('already logged in')) {
         message.warning('User is already logged in elsewhere, please do not login repeatedly!')
@@ -61,13 +64,24 @@ export default function LoginPage() {
     setLoading(true)
     try {
       // Check if username already exists
-      // Vue: res1.data.success !== false means username exists
+      // Backend returns ApiResponse<Boolean>: true = valid (not exists), false = exists
       const usernameCheck = await hasUsername({ username: values.username })
-      // API returns ApiResponse, so we need to check the nested data structure
-      const responseData = usernameCheck.data as any
-      // If success is not false (truthy or undefined), username exists
-      if (responseData && responseData.success !== false) {
+      
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Register] Username check response:', usernameCheck)
+      }
+      
+      // Check if response is successful and data is false (username exists)
+      if (isSuccessCode(usernameCheck.code) && usernameCheck.data === false) {
         message.error('Username already exists!')
+        setLoading(false)
+        return
+      }
+      
+      // If response code is not success, also treat as error
+      if (!isSuccessCode(usernameCheck.code)) {
+        message.error(usernameCheck.message || 'Failed to check username availability')
         setLoading(false)
         return
       }
@@ -78,27 +92,33 @@ export default function LoginPage() {
         password: values.password,
       })
 
-      // Auto login after registration
-      const loginData: LoginRequest = {
-        username: values.username,
-        password: values.password,
-        rememberMe: true,
-      }
-      
-      // Save to localStorage (matching Vue behavior)
+      // Clear any existing auth data (cookies and localStorage)
+      // This ensures a clean state before redirecting to login
       if (typeof window !== 'undefined') {
-        const loginResponse = await loginApi(loginData)
-        const token = loginResponse.data?.token
-        if (token) {
-          setToken(token, true)
-          setUsername(values.username, true)
-          localStorage.setItem('token', token)
-          localStorage.setItem('username', values.username)
-        }
+        // Clear cookies
+        removeToken()
+        removeUsername()
+        // Clear localStorage
+        localStorage.removeItem('token')
+        localStorage.removeItem('username')
       }
 
-      message.success('Registration and login successful!')
-      router.push('/home')
+      // Reset loading state first to avoid showing "half-loaded" state
+      setLoading(false)
+      
+      // Show success message
+      message.success('Registration successful! Please login with your new account.')
+      
+      // Clear registration form
+      registerForm.resetFields()
+      
+      // Switch to login form (this should happen after loading is reset)
+      setIsLogin(true)
+      
+      // Pre-fill username in login form (use setTimeout to ensure form is ready)
+      setTimeout(() => {
+        loginForm.setFieldsValue({ username: values.username })
+      }, 100)
     } catch (error: any) {
       message.error(error.message || 'Registration failed!')
     } finally {

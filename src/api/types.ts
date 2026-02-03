@@ -1,9 +1,12 @@
 // API Response Types
+// Backend Result format: { code: "0" (string), message, data, requestId? }
+// Success code is "0" as string, not number
 
 export interface ApiResponse<T = any> {
-  code: number
+  code: string | number  // Backend returns string "0" for success, but support number for compatibility
   message: string
   data: T
+  requestId?: string  // Optional request ID from gateway
 }
 
 export interface PaginatedResponse<T> {
@@ -36,7 +39,8 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string
-  user: User
+  user?: User  // Legacy field name
+  userInfo?: User  // Backend uses "userInfo"
 }
 
 export interface RegisterRequest {

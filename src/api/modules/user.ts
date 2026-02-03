@@ -6,10 +6,47 @@ import type { ApiResponse, LoginRequest, LoginResponse, RegisterRequest, User } 
  * Matches Vue implementation: api/modules/user.js
  */
 
-// Register user (POST /user)
+// Register user (POST /api/shortlink/admin/v1/user)
+// Backend endpoint: POST /api/shortlink/admin/v1/user
 export const addUser = async (data: RegisterRequest): Promise<ApiResponse<User>> => {
-  const response = await apiClient.post<ApiResponse<User>>('/user', data)
-  return response.data
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[User API] Register request:', {
+      username: data.username,
+      hasPassword: !!data.password,
+      email: data.email,
+      baseURL: apiClient.defaults.baseURL,
+      fullURL: `${apiClient.defaults.baseURL}/user`,
+    })
+  }
+  
+  try {
+    const response = await apiClient.post<ApiResponse<User>>('/user', data)
+    
+    // Debug logging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[User API] Register response:', response.data)
+    }
+    
+    return response.data
+  } catch (error: any) {
+    // Enhanced error logging
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[User API] Register error:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        code: error.code,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          baseURL: error.config?.baseURL,
+          data: error.config?.data,
+        },
+      })
+    }
+    throw error
+  }
 }
 
 // Alias for compatibility
@@ -32,8 +69,32 @@ export const updateUser = async (data: Partial<User>): Promise<User> => {
 
 // Login (POST /user/login)
 export const login = async (data: LoginRequest): Promise<ApiResponse<LoginResponse>> => {
-  const response = await apiClient.post<ApiResponse<LoginResponse>>('/user/login', data)
-  return response.data
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[User API] Login request:', { username: data.username, hasPassword: !!data.password })
+  }
+  
+  try {
+    const response = await apiClient.post<ApiResponse<LoginResponse>>('/user/login', data)
+    
+    // Debug logging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[User API] Login response:', response.data)
+    }
+    
+    return response.data
+  } catch (error: any) {
+    // Enhanced error logging
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[User API] Login error:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        code: error.code,
+      })
+    }
+    throw error
+  }
 }
 
 // Logout (DELETE /user/logout?token=...&username=...)
@@ -41,11 +102,36 @@ export const logout = async (data: { token: string; username: string }): Promise
   await apiClient.delete(`/user/logout?token=${data.token}&username=${data.username}`)
 }
 
-// Check if username is available (GET /user/has-username with params)
-// Returns ApiResponse with data containing success/available fields
-export const hasUsername = async (params: { username: string }): Promise<ApiResponse<any>> => {
-  const response = await apiClient.get<ApiResponse<any>>('/user/has-username', { params })
-  return response.data
+// Check if username is available (GET /user/isUsernameValidForRegistration with params)
+// Backend endpoint: /api/shortlink/admin/v1/user/isUsernameValidForRegistration?username=xxx
+// Returns ApiResponse<Boolean> - true if username is valid (not exists), false if exists
+export const hasUsername = async (params: { username: string }): Promise<ApiResponse<boolean>> => {
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[User API] Check username availability:', params)
+  }
+  
+  try {
+    const response = await apiClient.get<ApiResponse<boolean>>('/user/isUsernameValidForRegistration', { params })
+    
+    // Debug logging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[User API] Username availability response:', response.data)
+    }
+    
+    return response.data
+  } catch (error: any) {
+    // Enhanced error logging
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[User API] Check username error:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        code: error.code,
+      })
+    }
+    throw error
+  }
 }
 
 // Query user info by username (GET /actual/user/{username})

@@ -6,6 +6,7 @@ import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import { addSmallLink, queryTitle } from '@/src/api'
 import type { Group } from '@/src/api/types'
+import { useDomain } from '@/src/store/useStore'
 import styles from './CreateLink.module.css'
 
 const { TextArea } = Input
@@ -30,6 +31,7 @@ export default function CreateLink({
   onCancel,
 }: CreateLinkProps) {
   const [form] = Form.useForm()
+  const { domain } = useDomain()
   const [validDateType, setValidDateType] = useState<number>(0) // 0 = permanent, 1 = custom
   const [isLoading, setIsLoading] = useState(false)
   const [originUrlRows, setOriginUrlRows] = useState(0)
@@ -116,16 +118,23 @@ export default function CreateLink({
     try {
       const values = await form.validateFields()
       
+      // Format domain: if it doesn't start with http:// or https://, add http://
+      const formattedDomain = domain 
+        ? (domain.startsWith('http://') || domain.startsWith('https://') 
+            ? domain 
+            : `http://${domain}`)
+        : ''
+
       const formData = {
         originUrl: values.originUrl,
         describe: values.describe,
         gid: values.gid,
-        createdType: 1,
+        createdType: 0, // 0 = manual creation via UI (matching Postman format)
         validDate: validDateType === 1 && values.validDate 
           ? values.validDate.format('YYYY-MM-DD HH:mm:ss')
           : null,
         validDateType: validDateType,
-        domain: '', // Will be set by backend or from store
+        domain: formattedDomain,
       }
 
       const res = await addSmallLink(formData)
@@ -155,7 +164,10 @@ export default function CreateLink({
         // Validation errors - don't show message, form will show them
         setSubmitDisabled(false)
       } else {
-        message.error('Create Failure!')
+        // Show detailed error message
+        const errorMessage = error?.message || error?.response?.data?.message || 'Create Failure!'
+        console.error('Create link error:', error)
+        message.error(errorMessage)
         setSubmitDisabled(false)
       }
     }

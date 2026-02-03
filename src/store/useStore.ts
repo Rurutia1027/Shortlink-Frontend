@@ -45,7 +45,10 @@ interface AppState extends DomainState, UIState, UserState, GroupState, ModalSta
 // Create Zustand store (matching Vue store/index.js)
 export const useStore = create<AppState>((set, get) => ({
   // Domain State (matching Vue: state.domain = 'shortlink.tus')
-  domain: 'shortlink.tus',
+  // Default domain - can be updated via setDomain or should match backend configuration
+  // Format: 'short.tus.org' or 'http://short.tus.org' (code will add http:// if missing)
+  // Updated to match Postman request format: 'http://short.tus.org'
+  domain: 'short.tus.org',
   setDomain: (domain) => set({ domain }),
 
   // UI State

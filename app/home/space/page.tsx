@@ -41,8 +41,6 @@ import {
   sortGroup,
   queryGroupStats,
   queryGroupTable,
-} from '@/src/api'
-import {
   queryPage,
   queryRecycleBin,
   toRecycleBin,
@@ -52,8 +50,8 @@ import {
   queryLinkTable,
 } from '@/src/api'
 import { useDomain } from '@/src/store/useStore'
-import { getTodayFormatDate, getLastWeekFormatDate, truncateText } from '@/src/lib/utils'
-import type { Group, ShortLink, AnalyticsResponse } from '@/src/api/types'
+import { getTodayFormatDate, getLastWeekFormatDate, truncateText, isSuccessCode } from '@/src/lib/utils'
+import type { Group, ShortLink, AnalyticsResponse, PaginatedResponse } from '@/src/api/types'
 import QRCode from './components/QRCode/QRCode'
 import ChartsInfo, { type ChartsInfoRef } from './components/ChartsInfo/ChartsInfo'
 import CreateLink from './components/CreateLink/CreateLink'
@@ -122,18 +120,38 @@ export default function MySpacePage() {
   const loadGroups = useCallback(async () => {
     try {
       const res = await queryGroup()
-      // API returns ApiResponse, so we need res.data
-      const responseData = res.data as any
-      const groupList = (responseData.data || responseData || []).reverse()
-      setGroups(groupList)
       
-      // Set default selected group
-      if (groupList.length > 0 && selectedIndex < groupList.length) {
-        setSelectedGroupId(groupList[selectedIndex]?.gid || null)
-        setPageParams((prev) => ({ ...prev, gid: groupList[selectedIndex]?.gid || null }))
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Group API] Load groups response:', res)
       }
-    } catch (error) {
-      message.error('Failed to load groups')
+      
+      // Backend Result format: { code: "0", message, data: Group[] }
+      // res is already ApiResponse<Group[]>, so res.data is Group[]
+      if (isSuccessCode(res.code)) {
+        const groupList = Array.isArray(res.data) ? res.data : []
+        // Reverse to show newest first (matching Vue behavior)
+        const reversedList = [...groupList].reverse()
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Group API] Parsed group list:', reversedList)
+        }
+        
+        setGroups(reversedList)
+        
+        // Set default selected group
+        if (reversedList.length > 0 && selectedIndex < reversedList.length) {
+          setSelectedGroupId(reversedList[selectedIndex]?.gid || null)
+          setPageParams((prev) => ({ ...prev, gid: reversedList[selectedIndex]?.gid || null }))
+        }
+      } else {
+        console.error('[Group API] Failed to load groups:', res.message)
+        message.error(res.message || 'Failed to load groups')
+      }
+    } catch (error: any) {
+      console.error('[Group API] Load groups error:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to load groups'
+      message.error(errorMessage)
     }
   }, [setGroups, setSelectedGroupId, selectedIndex])
 
@@ -151,15 +169,20 @@ export default function MySpacePage() {
       }
 
       const res = await queryPage(params)
-      // API returns ApiResponse, check the nested structure
-      const responseData = res.data as any
       
-      // Vue: res?.data.success means res.data.success
-      if (responseData?.success) {
-        setTableData(responseData.data?.records || responseData.data?.list || [])
-        setTotalNums(Number(responseData.data?.total) || 0)
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Table] Query page response:', res)
+      }
+      
+      // Backend Result format: { code: "0", message, data: PaginatedResponse }
+      if (isSuccessCode(res.code)) {
+        // res.data is PaginatedResponse<ShortLink> with records and total
+        const paginatedData = res.data as PaginatedResponse<ShortLink>
+        setTableData(paginatedData.records || paginatedData.list || [])
+        setTotalNums(Number(paginatedData.total) || 0)
       } else {
-        message.error(responseData?.message || 'Failed to load data')
+        message.error(res.message || 'Failed to load data')
       }
     } catch (error: any) {
       message.error(error.message || 'Failed to load data')
@@ -232,18 +255,26 @@ export default function MySpacePage() {
   const handleAddGroup = async (values: { name: string }) => {
     try {
       const res = await addGroup({ name: values.name })
-      const responseData = res.data as any
       
-      if (responseData?.success) {
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Group API] Create group response:', res)
+      }
+      
+      // Backend Result format: { code: "0" (string), message, data }
+      // Use utility function to check success
+      if (isSuccessCode(res.code)) {
         message.success('Group added successfully')
         setIsAddGroup(false)
         groupForm.resetFields()
         await loadGroups()
       } else {
-        message.error(responseData?.message || 'Failed to add group')
+        message.error(res.message || 'Failed to add group')
       }
     } catch (error: any) {
-      message.error(error.message || 'Failed to add group')
+      console.error('[Group API] Create group error:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to add group'
+      message.error(errorMessage)
     }
   }
 
@@ -252,18 +283,26 @@ export default function MySpacePage() {
     try {
       const editGid = editGroupForm.getFieldValue('gid')
       const res = await editGroup({ id: editGid, name: values.name })
-      const responseData = res.data as any
       
-      if (responseData?.success) {
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Group API] Update group response:', res)
+      }
+      
+      // Backend Result format: { code: "0" (string), message, data }
+      // Use utility function to check success
+      if (isSuccessCode(res.code)) {
         message.success('Group updated successfully')
         setIsEditGroup(false)
         editGroupForm.resetFields()
         await loadGroups()
       } else {
-        message.error(responseData?.message || 'Failed to update group')
+        message.error(res.message || 'Failed to update group')
       }
     } catch (error: any) {
-      message.error(error.message || 'Failed to update group')
+      console.error('[Group API] Update group error:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update group'
+      message.error(errorMessage)
     }
   }
 
