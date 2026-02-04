@@ -48,7 +48,7 @@ export default function LineChart({ data, style }: LineChartProps) {
           <Line
             type="monotone"
             dataKey="pv"
-            name="访问次数"
+            name="Page Views"
             stroke="#83bff6"
             strokeWidth={2}
             dot={false}
@@ -56,7 +56,7 @@ export default function LineChart({ data, style }: LineChartProps) {
           <Line
             type="monotone"
             dataKey="uv"
-            name="访问人数"
+            name="Unique Visitors"
             stroke="#188df0"
             strokeWidth={2}
             dot={false}
@@ -64,7 +64,7 @@ export default function LineChart({ data, style }: LineChartProps) {
           <Line
             type="monotone"
             dataKey="uip"
-            name="访问IP数"
+            name="Unique IPs"
             stroke="#52c41a"
             strokeWidth={2}
             dot={false}

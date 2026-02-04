@@ -17,7 +17,7 @@ jest.mock('antd', () => {
 
 describe('ProgressPie Component', () => {
   it('renders two progress circles', () => {
-    const labels = ['新访客', '旧访客']
+    const labels = ['New Visitors', 'Returning Visitors']
     const data = [60, 40]
     
     render(<ProgressPie labels={labels} data={data} />)
@@ -27,7 +27,7 @@ describe('ProgressPie Component', () => {
   })
 
   it('calculates percentages correctly', () => {
-    const labels = ['新访客', '旧访客']
+    const labels = ['New Visitors', 'Returning Visitors']
     const data = [60, 40] // 60 + 40 = 100
     
     render(<ProgressPie labels={labels} data={data} />)
@@ -38,28 +38,28 @@ describe('ProgressPie Component', () => {
   })
 
   it('displays labels correctly', () => {
-    const labels = ['新访客', '旧访客']
+    const labels = ['New Visitors', 'Returning Visitors']
     const data = [60, 40]
     
     render(<ProgressPie labels={labels} data={data} />)
     
-    expect(screen.getByText(/新访客/)).toBeInTheDocument()
-    expect(screen.getByText(/旧访客/)).toBeInTheDocument()
+    expect(screen.getByText(/New Visitors/)).toBeInTheDocument()
+    expect(screen.getByText(/Returning Visitors/)).toBeInTheDocument()
   })
 
   it('displays data values with correct units', () => {
-    const labels = ['新访客', '旧访客']
+    const labels = ['New Visitors', 'Returning Visitors']
     const data = [60, 40]
     
     render(<ProgressPie labels={labels} data={data} />)
     
-    // 新访客 uses '人', 旧访客 uses '人'
-    expect(screen.getByText(/60 人/)).toBeInTheDocument()
-    expect(screen.getByText(/40 人/)).toBeInTheDocument()
+    // New Visitors uses 'visitors', Returning Visitors uses 'visitors'
+    expect(screen.getByText(/60 visitors/)).toBeInTheDocument()
+    expect(screen.getByText(/40 visitors/)).toBeInTheDocument()
   })
 
   it('handles zero values', () => {
-    const labels = ['新访客', '旧访客']
+    const labels = ['New Visitors', 'Returning Visitors']
     const data = [0, 0]
     
     render(<ProgressPie labels={labels} data={data} />)
@@ -70,7 +70,7 @@ describe('ProgressPie Component', () => {
   })
 
   it('handles empty data array', () => {
-    const labels = ['数据1', '数据2']
+    const labels = ['Data 1', 'Data 2']
     const data: number[] = []
     
     render(<ProgressPie labels={labels} data={data} />)
@@ -86,12 +86,12 @@ describe('ProgressPie Component', () => {
     
     render(<ProgressPie labels={labels} data={data} />)
     
-    expect(screen.getByText(/数据1/)).toBeInTheDocument()
-    expect(screen.getByText(/数据2/)).toBeInTheDocument()
+    expect(screen.getByText(/Data 1/)).toBeInTheDocument()
+    expect(screen.getByText(/Data 2/)).toBeInTheDocument()
   })
 
   it('applies custom style prop', () => {
-    const labels = ['新访客', '旧访客']
+    const labels = ['New Visitors', 'Returning Visitors']
     const data = [60, 40]
     const customStyle = { margin: '20px' }
     
@@ -102,7 +102,7 @@ describe('ProgressPie Component', () => {
   })
 
   it('calculates percentage correctly for uneven values', () => {
-    const labels = ['新访客', '旧访客']
+    const labels = ['New Visitors', 'Returning Visitors']
     const data = [30, 70] // 30 + 70 = 100
     
     render(<ProgressPie labels={labels} data={data} />)

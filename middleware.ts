@@ -12,22 +12,18 @@ import { isPublicRoute, hasValidToken } from '@/src/lib/middleware-utils'
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // TEMPORARILY DISABLED: Allow all routes for testing backend integration
-  // TODO: Re-enable authentication after CreateLink component is working
-  return NextResponse.next()
-
   // Allow /login route (matching Vue: if (to.path === '/login') next())
-  // if (pathname === '/login') {
-  //   return NextResponse.next()
-  // }
+  if (isPublicRoute(pathname)) {
+    return NextResponse.next()
+  }
 
   // Check if token exists (matching Vue: if (isNotEmpty(token)) next())
-  // if (hasValidToken(request)) {
-  //   return NextResponse.next()
-  // }
+  if (hasValidToken(request)) {
+    return NextResponse.next()
+  }
 
   // Redirect to login if no token (matching Vue: else next('/login'))
-  // return NextResponse.redirect(new URL('/login', request.url))
+  return NextResponse.redirect(new URL('/login', request.url))
 }
 
 // Configure which routes the middleware runs on

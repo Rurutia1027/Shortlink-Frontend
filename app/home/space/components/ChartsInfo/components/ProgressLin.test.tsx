@@ -30,13 +30,13 @@ describe('ProgressLine Component', () => {
   it('displays empty state when dataLists is empty', () => {
     render(<ProgressLine dataLists={[]} />)
     
-    expect(screen.getByText('所选日期内没有访问数据')).toBeInTheDocument()
+    expect(screen.getByText('No access data for selected date range')).toBeInTheDocument()
   })
 
   it('displays empty state when dataLists is undefined', () => {
     render(<ProgressLine />)
     
-    expect(screen.getByText('所选日期内没有访问数据')).toBeInTheDocument()
+    expect(screen.getByText('No access data for selected date range')).toBeInTheDocument()
   })
 
   it('displays OS name when os field exists', () => {
@@ -60,7 +60,7 @@ describe('ProgressLine Component', () => {
   it('displays count with correct format', () => {
     render(<ProgressLine dataLists={[{ os: 'Windows', cnt: 100, ratio: 0.5 }]} />)
     
-    expect(screen.getByText('100 次')).toBeInTheDocument()
+    expect(screen.getByText('100 visits')).toBeInTheDocument()
   })
 
   it('calculates and displays percentage correctly', () => {
@@ -79,7 +79,7 @@ describe('ProgressLine Component', () => {
   it('handles missing cnt field (defaults to 0)', () => {
     render(<ProgressLine dataLists={[{ os: 'Windows', ratio: 0.5 }]} />)
     
-    expect(screen.getByText('0 次')).toBeInTheDocument()
+    expect(screen.getByText('0 visits')).toBeInTheDocument()
   })
 
   it('handles missing ratio field (defaults to 0)', () => {

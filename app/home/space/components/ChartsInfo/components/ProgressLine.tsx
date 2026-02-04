@@ -23,7 +23,7 @@ export default function ProgressLine({ dataLists = [], style }: ProgressLineProp
   if (!dataLists || dataLists.length === 0) {
     return (
       <div style={{ ...style, padding: '20px', textAlign: 'center', color: '#999' }}>
-        所选日期内没有访问数据
+        No access data for selected date range
       </div>
     )
   }
@@ -88,7 +88,7 @@ export default function ProgressLine({ dataLists = [], style }: ProgressLineProp
                 </span>
               </div>
               <div>
-                <span>{value} 次</span>
+                <span>{value} visits</span>
               </div>
             </div>
             <div>

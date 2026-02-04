@@ -14,6 +14,7 @@ const apiClient: AxiosInstance = axios.create({
   timeout: 15000, // 15 seconds (matching Vue implementation)
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json', // Explicitly set Accept header for Next.js rewrites
   },
 })
 
@@ -23,10 +24,41 @@ apiClient.interceptors.request.use(
     const token = getToken()
     const username = getUsername()
     
+    // Debug logging in development
+    if (process.env.NODE_ENV === 'development') {
+      const fullUrl = config.baseURL ? `${config.baseURL}${config.url}` : config.url
+      console.log('[API Client] Request interceptor:', {
+        baseURL: config.baseURL,
+        url: config.url,
+        fullURL: fullUrl,
+        method: config.method?.toUpperCase(),
+        hasToken: !!token,
+        hasUsername: !!username,
+        token: token ? `${token.substring(0, 10)}...` : 'missing',
+        username: username || 'missing',
+        headers: {
+          'Content-Type': config.headers?.['Content-Type'],
+          'Accept': config.headers?.['Accept'],
+          'Token': config.headers?.Token ? 'present' : 'missing',
+          'Username': config.headers?.Username ? 'present' : 'missing',
+        },
+        data: config.data ? (typeof config.data === 'string' ? config.data : JSON.stringify(config.data)) : undefined,
+      })
+    }
+    
     // Add Token and Username headers (matching Vue implementation)
     if (config.headers) {
       config.headers.Token = isNotEmpty(token) ? token : ''
       config.headers.Username = isNotEmpty(username) ? username : ''
+      
+      // Warn if missing auth headers
+      if (process.env.NODE_ENV === 'development' && (!token || !username)) {
+        console.warn('[API Client] ⚠️ Missing authentication:', {
+          hasToken: !!token,
+          hasUsername: !!username,
+          url: config.url,
+        })
+      }
     }
     
     return config

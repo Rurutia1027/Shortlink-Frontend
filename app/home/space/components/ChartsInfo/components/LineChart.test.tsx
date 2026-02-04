@@ -59,10 +59,10 @@ describe('LineChart Component', () => {
   it('renders all three line series', () => {
     render(<LineChart data={mockData} />)
     
-    // LineChart uses Chinese names: "访问次数", "访问人数", "访问IP数"
-    expect(screen.getByTestId('recharts-line-访问次数')).toBeInTheDocument()
-    expect(screen.getByTestId('recharts-line-访问人数')).toBeInTheDocument()
-    expect(screen.getByTestId('recharts-line-访问IP数')).toBeInTheDocument()
+    // LineChart uses English names: "Page Views", "Unique Visitors", "Unique IPs"
+    expect(screen.getByTestId('recharts-line-Page Views')).toBeInTheDocument()
+    expect(screen.getByTestId('recharts-line-Unique Visitors')).toBeInTheDocument()
+    expect(screen.getByTestId('recharts-line-Unique IPs')).toBeInTheDocument()
   })
 
   it('handles empty data array', () => {

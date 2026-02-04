@@ -199,22 +199,22 @@ describe('ChartsInfo Component', () => {
     expect(within(screen.getByTestId('modal-body')).getByText('Total: 12 short links')).toBeInTheDocument()
   })
 
-  it('renders default tab 访问数据', () => {
+  it('renders default tab Analytics', () => {
     const ref = React.createRef<ChartsInfoRef>()
     render(<ChartsInfo ref={ref} title="Analytics" info={makeInfo()} tableInfo={makeTableInfo()} />)
     openModal(ref)
 
-    expect(screen.getByTestId('tab-访问数据')).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByTestId('tab-Analytics')).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByTestId('antd-tabs')).toBeInTheDocument()
   })
 
-  it('switches to 历史记录 tab and renders table + pagination', () => {
+  it('switches to History tab and renders table + pagination', () => {
     const ref = React.createRef<ChartsInfoRef>()
     render(<ChartsInfo ref={ref} title="Analytics" info={makeInfo()} tableInfo={makeTableInfo(25)} />)
     openModal(ref)
 
-    fireEvent.click(screen.getByTestId('tab-历史记录'))
-    expect(screen.getByTestId('tab-历史记录')).toHaveAttribute('aria-selected', 'true')
+    fireEvent.click(screen.getByTestId('tab-History'))
+    expect(screen.getByTestId('tab-History')).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByTestId('antd-table')).toBeInTheDocument()
     expect(screen.getByTestId('antd-pagination')).toBeInTheDocument()
   })
@@ -224,7 +224,7 @@ describe('ChartsInfo Component', () => {
     const onChangePage = jest.fn()
     render(<ChartsInfo ref={ref} title="Analytics" info={makeInfo()} tableInfo={makeTableInfo(25)} onChangePage={onChangePage} />)
     openModal(ref)
-    fireEvent.click(screen.getByTestId('tab-历史记录'))
+    fireEvent.click(screen.getByTestId('tab-History'))
 
     fireEvent.click(screen.getByTestId('page-next'))
     expect(onChangePage).toHaveBeenCalledWith({ current: 2, size: 10 })
@@ -277,9 +277,9 @@ describe('ChartsInfo Component', () => {
 
     // totalPv=30, totalUv=14, totalUip=9
     const body = within(screen.getByTestId('modal-body'))
-    expect(body.getByText('访问次数')).toBeInTheDocument()
-    expect(body.getByText('访问人数')).toBeInTheDocument()
-    expect(body.getByText('访问IP数')).toBeInTheDocument()
+    expect(body.getByText('Page Views')).toBeInTheDocument()
+    expect(body.getByText('Unique Visitors')).toBeInTheDocument()
+    expect(body.getByText('Unique IPs')).toBeInTheDocument()
     expect(body.getByText('30')).toBeInTheDocument()
     expect(body.getByText('14')).toBeInTheDocument()
     expect(body.getByText('9')).toBeInTheDocument()

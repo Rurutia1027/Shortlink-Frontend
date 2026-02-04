@@ -6,6 +6,7 @@ import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import { addLinks } from '@/src/api'
 import type { Group } from '@/src/api/types'
+import { useDomain } from '@/src/store/useStore'
 import styles from './CreateLinks.module.css'
 
 const { TextArea } = Input
@@ -28,6 +29,7 @@ export default function CreateLinks({
   onCancel,
 }: CreateLinksProps) {
   const [form] = Form.useForm()
+  const { domain } = useDomain()
   const [validDateType, setValidDateType] = useState<number>(0) // 0 = permanent, 1 = custom
   const [originUrlRows, setOriginUrlRows] = useState(0)
   const [describeRows, setDescribeRows] = useState(0)
@@ -126,16 +128,23 @@ export default function CreateLinks({
       const describes = transferStrToArray(values.describes)
       const originUrls = transferStrToArray(values.originUrls)
 
+      // Format domain: if it doesn't start with http:// or https://, add http://
+      const formattedDomain = domain 
+        ? (domain.startsWith('http://') || domain.startsWith('https://') 
+            ? domain 
+            : `http://${domain}`)
+        : ''
+
       const formData = {
         originUrls,
         describes,
         gid: values.gid,
-        createdType: 1,
+        createdType: 0, // 0 = manual creation via UI (matching Postman format)
         validDate: validDateType === 1 && values.validDate 
           ? values.validDate.format('YYYY-MM-DD HH:mm:ss')
           : null,
         validDateType: validDateType,
-        domain: '', // Will be set by backend or from store
+        domain: formattedDomain,
       }
 
       const res = await addLinks(formData)

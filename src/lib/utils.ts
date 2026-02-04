@@ -60,3 +60,17 @@ export const truncateText = (text: string, maxLength: number): string => {
   if (!text) return ''
   return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
 }
+
+/**
+ * Check if API response indicates success
+ * Backend returns code as string "0" for success, but also support number for compatibility
+ * @param code - Response code (string or number)
+ * @returns true if code indicates success
+ */
+export const isSuccessCode = (code: string | number | undefined): boolean => {
+  if (code === undefined || code === null) return false
+  const codeStr = typeof code === 'string' ? code : String(code)
+  const codeNum = typeof code === 'number' ? code : Number(code)
+  // Backend success code is "0" as string, also support 0, 200 as number
+  return codeStr === '0' || codeStr === '200' || codeNum === 0 || codeNum === 200
+}

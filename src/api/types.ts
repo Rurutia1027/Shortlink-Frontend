@@ -1,19 +1,25 @@
 // API Response Types
+// Backend Result format: { code: "0" (string), message, data, requestId? }
+// Success code is "0" as string, not number
 
 export interface ApiResponse<T = any> {
-  code: number
+  code: string | number  // Backend returns string "0" for success, but support number for compatibility
   message: string
   data: T
+  requestId?: string  // Optional request ID from gateway
 }
 
 export interface PaginatedResponse<T> {
   list?: T[]
   records?: T[]
+  elements?: T[]  // Backend returns "elements" field
   total: number
   page?: number
   current?: number
   pageSize?: number
   size?: number
+  start?: number  // Backend returns "start" field (offset)
+  page_size?: number  // Backend returns "page_size" field
 }
 
 // User Types
@@ -36,7 +42,8 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string
-  user: User
+  user?: User  // Legacy field name
+  userInfo?: User  // Backend uses "userInfo"
 }
 
 export interface RegisterRequest {
@@ -152,6 +159,12 @@ export interface UpdateShortLinkRequest {
   domain?: string
 }
 
+export interface RecycleBinListParams {
+  gidList?: string[]  // List of group IDs for recycle bin query
+  current?: number    // Page number (maps to pageNum)
+  size?: number       // Page size (maps to pageSize)
+}
+
 export interface ShortLinkListParams {
   page?: number
   pageSize?: number
@@ -163,6 +176,7 @@ export interface ShortLinkListParams {
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
   orderTag?: string | null
+  enableStatus?: number  // 0 = active, 1 = deleted (in recycle bin)
 }
 
 // Analytics Types

@@ -41,6 +41,22 @@
   box-shadow: 0px 2px 8px 0px rgba(28, 41, 90, 0.1);
 }
 
+/* Add button (+ icon) - make it blue and interactive */
+.addButton {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.addButton:hover {
+  color: #40a9ff;
+  background-color: #e6f7ff;
+  transform: scale(1.1);
+}
+
+.addButton :global(.anticon) {
+  color: inherit;
+}
+
 .sortOptions {
   height: calc(100% - 106px);
   margin-bottom: 50px;
@@ -62,8 +78,8 @@
 }
 
 .selectedItem {
-  color: #3464e0 !important;
-  background-color: #ebeffa !important;
+  color: #1890ff !important;
+  background-color: #e6f7ff !important;
   font-weight: 600 !important;
 }
 
@@ -75,9 +91,10 @@
 
 .edit {
   display: none;
-  color: rgb(83, 97, 97);
+  color: #8c8c8c;
   font-size: 18px;
   cursor: pointer;
+  transition: color 0.2s;
 }
 
 .itemBox:hover .edit {
@@ -89,7 +106,7 @@
 }
 
 .edit:hover {
-  color: #2991ce;
+  color: #1890ff;
 }
 
 .itemLength {
@@ -118,6 +135,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #1890ff;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.recycleBox:hover {
+  color: #40a9ff;
+  background-color: #e6f7ff;
+}
+
+.recycleBinText {
+  color: inherit;
+  font-weight: 500;
+}
+
+.recycleBinIcon {
+  color: inherit !important;
+}
+
+.recycleBox.selectedItem {
+  color: #1890ff !important;
+  background-color: #e6f7ff !important;
+}
+
+.recycleBox.selectedItem .recycleBinText,
+.recycleBox.selectedItem .recycleBinIcon {
+  color: #1890ff !important;
 }
 
 .contentBox {
@@ -131,6 +175,17 @@
   background-color: #ffffff;
   height: 100%;
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tableContainer {
+  flex: 1;
+  overflow: hidden;
+  /* Fixed height: header (32px) + 10 rows (28px each) = 312px */
+  height: 312px;
+  min-height: 312px;
+  max-height: 312px;
 }
 
 .buttonsBox {
@@ -156,6 +211,9 @@
   display: flex;
   justify-content: center;
   margin-top: 16px;
+  flex-shrink: 0;
+  height: 32px;
+  min-height: 32px;
 }
 
 .tableLinkBox {
@@ -170,24 +228,26 @@
 }
 
 .nameDate > span:first-child {
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 200px;
+  line-height: 1.2;
 }
 
 .time {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 4px;
+  gap: 6px;
+  margin-top: 1px;
 }
 
 .time span {
-  font-size: 12px;
+  font-size: 10px;
   color: rgba(0, 0, 0, 0.6);
+  line-height: 1.2;
 }
 
 .expiredBadge {
@@ -206,7 +266,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 2px;
 }
 
 .tableUrlBox > span {
@@ -215,45 +275,93 @@
   white-space: nowrap;
   max-width: 250px;
   color: rgba(0, 0, 0, 0.4);
-  font-size: 12px;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.tableUrlBox > a {
+  font-size: 11px;
+  line-height: 1.2;
 }
 
 .timesBox {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .todayBox,
 .totalBox {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .todayBox span:first-child,
 .totalBox span:first-child {
   font-weight: 400;
   color: rgba(0, 0, 0, 0.4);
-  font-size: 13px;
+  font-size: 11px;
+  line-height: 1.2;
 }
 
 .todayBox span:last-child {
   font-weight: 600;
-  font-size: 13px;
+  font-size: 11px;
+  line-height: 1.2;
 }
 
 .totalBox span:last-child {
   font-weight: 400;
-  font-size: 13px;
+  font-size: 11px;
+  line-height: 1.2;
 }
 
 .tableEdit {
   font-size: 20px;
   margin-right: 15px;
-  color: #3677c2;
+  color: #1890ff;
   cursor: pointer;
+  transition: color 0.2s, transform 0.2s;
 }
 
 .tableEdit:hover {
-  color: #98cafe;
+  color: #40a9ff;
+  transform: scale(1.1);
+}
+
+/* Reduce table row height for better display density */
+.tableBox :global(.ant-table) {
+  font-size: 12px;
+}
+
+.tableBox :global(.ant-table-thead > tr > th) {
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  height: 32px;
+  line-height: 1.2;
+}
+
+.tableBox :global(.ant-table-tbody > tr > td) {
+  padding: 4px 10px;
+  height: 28px;
+  line-height: 1.2;
+}
+
+.tableBox :global(.ant-table-tbody > tr) {
+  height: 28px;
+}
+
+.tableBox :global(.ant-table-tbody > tr:hover > td) {
+  background: #fafafa;
+}
+
+/* Reduce icon size in table */
+.tableBox :global(.anticon) {
+  font-size: 14px;
+}
+
+/* Ensure table container doesn't scroll */
+.tableContainer :global(.ant-table-body) {
+  overflow: hidden !important;
 }

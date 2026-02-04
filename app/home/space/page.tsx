@@ -41,8 +41,6 @@ import {
   sortGroup,
   queryGroupStats,
   queryGroupTable,
-} from '@/src/api'
-import {
   queryPage,
   queryRecycleBin,
   toRecycleBin,
@@ -52,8 +50,8 @@ import {
   queryLinkTable,
 } from '@/src/api'
 import { useDomain } from '@/src/store/useStore'
-import { getTodayFormatDate, getLastWeekFormatDate, truncateText } from '@/src/lib/utils'
-import type { Group, ShortLink, AnalyticsResponse } from '@/src/api/types'
+import { getTodayFormatDate, getLastWeekFormatDate, truncateText, isSuccessCode } from '@/src/lib/utils'
+import type { Group, ShortLink, AnalyticsResponse, PaginatedResponse } from '@/src/api/types'
 import QRCode from './components/QRCode/QRCode'
 import ChartsInfo, { type ChartsInfoRef } from './components/ChartsInfo/ChartsInfo'
 import CreateLink from './components/CreateLink/CreateLink'
@@ -80,7 +78,7 @@ export default function MySpacePage() {
   const [pageParams, setPageParams] = useState({
     gid: null as string | null,
     current: 1,
-    size: 15,
+    size: 10, // Default page size - fixed to show 10 rows without scrolling
     orderTag: null as string | null,
   })
 
@@ -119,21 +117,63 @@ export default function MySpacePage() {
   )
 
   // Load groups
-  const loadGroups = useCallback(async () => {
+  const loadGroups = useCallback(async (autoSelectNewGroup: boolean = false) => {
     try {
       const res = await queryGroup()
-      // API returns ApiResponse, so we need res.data
-      const responseData = res.data as any
-      const groupList = (responseData.data || responseData || []).reverse()
-      setGroups(groupList)
       
-      // Set default selected group
-      if (groupList.length > 0 && selectedIndex < groupList.length) {
-        setSelectedGroupId(groupList[selectedIndex]?.gid || null)
-        setPageParams((prev) => ({ ...prev, gid: groupList[selectedIndex]?.gid || null }))
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Group API] Load groups response:', res)
       }
-    } catch (error) {
-      message.error('Failed to load groups')
+      
+      // Backend Result format: { code: "0", message, data: Group[] }
+      // res is already ApiResponse<Group[]>, so res.data is Group[]
+      if (isSuccessCode(res.code)) {
+        const groupList = Array.isArray(res.data) ? res.data : []
+        // Reverse to show newest first (matching Vue behavior)
+        const reversedList = [...groupList].reverse()
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Group API] Parsed group list:', reversedList)
+        }
+        
+        setGroups(reversedList)
+      
+        // If autoSelectNewGroup is true, select the last group (newest)
+        if (autoSelectNewGroup && reversedList.length > 0) {
+          const newGroupIndex = reversedList.length - 1
+          const newGroup = reversedList[newGroupIndex]
+          
+          if (newGroup?.gid) {
+            setSelectedIndex(newGroupIndex)
+            setSelectedGroupId(newGroup.gid)
+            setIsRecycleBin(false)
+            // Update page params - this will trigger useEffect to call loadTableData
+            setPageParams((prev) => ({
+              ...prev,
+              gid: newGroup.gid || null,
+              current: 1,
+            }))
+            // Note: loadTableData will be automatically called by useEffect when pageParams changes
+          }
+        } else if (reversedList.length > 0 && selectedIndex >= 0 && selectedIndex < reversedList.length) {
+          // Keep current selection if valid
+          setSelectedGroupId(reversedList[selectedIndex]?.gid || null)
+          setPageParams((prev) => ({ ...prev, gid: reversedList[selectedIndex]?.gid || null }))
+        } else if (reversedList.length > 0 && selectedIndex < 0) {
+          // If no selection, select first group
+          setSelectedIndex(0)
+          setSelectedGroupId(reversedList[0]?.gid || null)
+          setPageParams((prev) => ({ ...prev, gid: reversedList[0]?.gid || null }))
+      }
+      } else {
+        console.error('[Group API] Failed to load groups:', res.message)
+        message.error(res.message || 'Failed to load groups')
+      }
+    } catch (error: any) {
+      console.error('[Group API] Load groups error:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to load groups'
+      message.error(errorMessage)
     }
   }, [setGroups, setSelectedGroupId, selectedIndex])
 
@@ -145,21 +185,51 @@ export default function MySpacePage() {
         current: pageParams.current,
         size: pageParams.size,
         gid: pageParams.gid,
+        enableStatus: 0,  // Only show active items (not deleted), exclude enableStatus === 1
       }
       if (pageParams.orderTag) {
         params.orderTag = pageParams.orderTag
       }
 
       const res = await queryPage(params)
-      // API returns ApiResponse, check the nested structure
-      const responseData = res.data as any
       
-      // Vue: res?.data.success means res.data.success
-      if (responseData?.success) {
-        setTableData(responseData.data?.records || responseData.data?.list || [])
-        setTotalNums(Number(responseData.data?.total) || 0)
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Table] Query page response:', res)
+      }
+      
+      // Backend Result format: { code: "0", message, data: PaginatedResponse }
+      if (isSuccessCode(res.code)) {
+        // res.data is PaginatedResponse<ShortLink>
+        // Backend returns: { start, page_size, total, elements }
+        const paginatedData = res.data as PaginatedResponse<ShortLink>
+        
+        // Backend uses "elements" field, fallback to "records" or "list" for compatibility
+        // Backend should already filter enableStatus === 0 (active items only)
+        // But we add an extra filter as a safety measure
+        const allData = paginatedData.elements || paginatedData.records || paginatedData.list || []
+        const dataList = allData.filter((item: ShortLink) => item.enableStatus !== 1)
+        
+        if (process.env.NODE_ENV === 'development') {
+          const deletedCount = allData.filter((item: ShortLink) => item.enableStatus === 1).length
+          console.log('[Table] Parsed paginated data:', {
+            elements: paginatedData.elements?.length,
+            records: paginatedData.records?.length,
+            list: paginatedData.list?.length,
+            backendTotal: paginatedData.total,
+            allDataLength: allData.length,
+            filteredDataLength: dataList.length,
+            deletedCount: deletedCount,
+            note: deletedCount > 0 ? 'Warning: Backend returned deleted items, filtered out' : 'All items are active',
+          })
+        }
+        
+        setTableData(dataList)
+        // Use backend total (should already exclude deleted items if backend filters correctly)
+        // If backend doesn't filter, the count may be slightly off, but pagination should still work
+        setTotalNums(Number(paginatedData.total) || dataList.length)
       } else {
-        message.error(responseData?.message || 'Failed to load data')
+        message.error(res.message || 'Failed to load data')
       }
     } catch (error: any) {
       message.error(error.message || 'Failed to load data')
@@ -172,23 +242,48 @@ export default function MySpacePage() {
   const loadRecycleBin = useCallback(async () => {
     setLoading(true)
     try {
+      // Collect all group IDs for gidList parameter
+      const gidList = groups.map(group => group.gid).filter((gid): gid is string => !!gid)
+      
       const res = await queryRecycleBin({
+        gidList: gidList.length > 0 ? gidList : undefined,
         current: pageParams.current,
         size: pageParams.size,
       })
-      const responseData = res.data as any
       
-      // Vue: res.data?.data?.records
-      setTableData(responseData.data?.records || responseData.data?.list || [])
-      const total = Number(responseData.data?.total) || 0
-      setTotalNums(total)
-      setRecycleBinNums(total)
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Recycle Bin] Query response:', res)
+      }
+      
+      // Backend returns: { code: "0", data: { elements, total, ... } }
+      if (isSuccessCode(res.code)) {
+        const paginatedData = res.data as PaginatedResponse<ShortLink>
+        const dataList = paginatedData.elements || paginatedData.records || paginatedData.list || []
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Recycle Bin] Parsed data:', {
+            elements: paginatedData.elements?.length,
+            records: paginatedData.records?.length,
+            list: paginatedData.list?.length,
+            total: paginatedData.total,
+            dataListLength: dataList.length,
+          })
+        }
+        
+        setTableData(dataList)
+        const total = Number(paginatedData.total) || 0
+        setTotalNums(total)
+        setRecycleBinNums(total)
+      } else {
+        message.error(res.message || 'Failed to load recycle bin')
+      }
     } catch (error: any) {
       message.error(error.message || 'Failed to load recycle bin')
     } finally {
       setLoading(false)
     }
-  }, [pageParams.current, pageParams.size])
+  }, [pageParams.current, pageParams.size, groups])
 
   useEffect(() => {
     loadGroups()
@@ -232,18 +327,29 @@ export default function MySpacePage() {
   const handleAddGroup = async (values: { name: string }) => {
     try {
       const res = await addGroup({ name: values.name })
-      const responseData = res.data as any
       
-      if (responseData?.success) {
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Group API] Create group response:', res)
+      }
+      
+      // Backend Result format: { code: "0" (string), message, data }
+      // Use utility function to check success
+      if (isSuccessCode(res.code)) {
         message.success('Group added successfully')
         setIsAddGroup(false)
         groupForm.resetFields()
-        await loadGroups()
+        
+        // Reload groups list and automatically select the newly created group
+        // autoSelectNewGroup=true will select the last group (newest) and refresh table data
+        await loadGroups(true)
       } else {
-        message.error(responseData?.message || 'Failed to add group')
+        message.error(res.message || 'Failed to add group')
       }
     } catch (error: any) {
-      message.error(error.message || 'Failed to add group')
+      console.error('[Group API] Create group error:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to add group'
+      message.error(errorMessage)
     }
   }
 
@@ -252,18 +358,26 @@ export default function MySpacePage() {
     try {
       const editGid = editGroupForm.getFieldValue('gid')
       const res = await editGroup({ id: editGid, name: values.name })
-      const responseData = res.data as any
       
-      if (responseData?.success) {
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Group API] Update group response:', res)
+      }
+      
+      // Backend Result format: { code: "0" (string), message, data }
+      // Use utility function to check success
+      if (isSuccessCode(res.code)) {
         message.success('Group updated successfully')
         setIsEditGroup(false)
         editGroupForm.resetFields()
         await loadGroups()
       } else {
-        message.error(responseData?.message || 'Failed to update group')
+        message.error(res.message || 'Failed to update group')
       }
     } catch (error: any) {
-      message.error(error.message || 'Failed to update group')
+      console.error('[Group API] Update group error:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update group'
+      message.error(errorMessage)
     }
   }
 
@@ -712,7 +826,7 @@ export default function MySpacePage() {
           <div>
             Groups <span>({groups.length} total)</span>
           </div>
-          <div className={styles.hoverBox} onClick={() => setIsAddGroup(true)}>
+          <div className={`${styles.hoverBox} ${styles.addButton}`} onClick={() => setIsAddGroup(true)}>
             <PlusOutlined style={{ fontSize: '18px' }} />
           </div>
         </div>
@@ -751,8 +865,8 @@ export default function MySpacePage() {
             }`}
             onClick={handleRecycleBin}
           >
-            Recycle Bin
-            <DeleteOutlined style={{ marginLeft: '5px', fontSize: '20px' }} />
+            <span className={styles.recycleBinText}>Recycle Bin</span>
+            <DeleteOutlined className={styles.recycleBinIcon} style={{ marginLeft: '5px', fontSize: '20px' }} />
           </div>
         </div>
       </div>
@@ -782,14 +896,16 @@ export default function MySpacePage() {
             </div>
           )}
 
+          <div className={styles.tableContainer}>
           <Table
             columns={columns}
             dataSource={tableData}
             loading={loading}
             rowKey={(record) => record.id || record.fullShortUrl || ''}
             pagination={false}
-            scroll={{ y: 'calc(100vh - 340px)' }}
+              size="small"
           />
+          </div>
 
           <div className={styles.paginationBlock}>
             <Pagination
@@ -798,9 +914,9 @@ export default function MySpacePage() {
               total={totalNums}
               showSizeChanger
               showQuickJumper
-              pageSizeOptions={['10', '15', '20', '30']}
+              pageSizeOptions={['5', '10', '15', '20', '30']}
               onChange={(page, size) => {
-                setPageParams((prev) => ({ ...prev, current: page, size: size || 15 }))
+                setPageParams((prev) => ({ ...prev, current: page, size: size || 10 }))
               }}
               onShowSizeChange={(current, size) => {
                 setPageParams((prev) => ({ ...prev, current: 1, size }))

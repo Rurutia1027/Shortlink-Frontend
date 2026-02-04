@@ -81,24 +81,101 @@ export function useAuth(): UseAuthReturn {
   const login = useCallback(async (credentials: LoginRequest) => {
     try {
       const apiResponse = await loginApi(credentials)
-      // API returns ApiResponse<LoginResponse>, so we need to access .data
-      const response = apiResponse.data
+      
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Auth] Login API response:', apiResponse)
+      }
+      
+      // API returns ApiResponse<LoginResponse>
+      // Backend response structure: { code: "0", data: { token: "...", userInfo: {...} } }
+      // Note: Backend uses "userInfo" not "user"
+      const response = apiResponse.data as any // Use 'any' temporarily to handle both userInfo and user
+      
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Auth] Login API response:', apiResponse)
+        console.log('[Auth] Login response data:', response)
+        console.log('[Auth] Token:', response.token ? `${response.token.substring(0, 10)}...` : 'missing')
+        console.log('[Auth] UserInfo:', response.userInfo || response.user || 'missing')
+      }
+      
+      // Backend returns userInfo, but we'll support both userInfo and user for compatibility
+      const user = (response.userInfo || response.user) as User | undefined
+      const username = user?.username
       
       // Save token and username
+      if (response.token && username) {
       setToken(response.token, credentials.rememberMe || false)
-      setUsername(response.user.username, credentials.rememberMe || false)
+        setUsername(username, credentials.rememberMe || false)
+        
+        // Verify token and username were saved
+        if (process.env.NODE_ENV === 'development') {
+          const savedToken = getToken()
+          const savedUsername = getUsername()
+          console.log('[Auth] ✅ Token and username saved:', {
+            tokenSaved: !!savedToken,
+            usernameSaved: !!savedUsername,
+            tokenMatch: savedToken === response.token,
+            usernameMatch: savedUsername === username,
+          })
+        }
+      } else {
+        console.error('[Auth] ❌ Missing token or username in response:', response)
+        throw new Error('Login response missing token or username')
+      }
       
       // Update state
       setState({
-        user: response.user,
+        user: user || null,
         isAuthenticated: true,
         isLoading: false,
       })
 
       // Redirect to dashboard or specified redirect URL
-      const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/space'
-      router.push(redirectUrl)
+      // Default to /home/space (main dashboard page)
+      // IMPORTANT: Always redirect to /home/space, not /home, to avoid RSC request issues
+      const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/home/space'
+      
+      // Ensure redirect URL doesn't have query parameters that might cause issues
+      const cleanRedirectUrl = redirectUrl.split('?')[0]
+      
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Auth] ✅ Login successful, preparing redirect...')
+        console.log('[Auth] Redirect URL:', cleanRedirectUrl)
+        console.log('[Auth] Token saved, cookie should be available:', {
+          token: getToken() ? 'present' : 'missing',
+          username: getUsername() ? 'present' : 'missing',
+        })
+      }
+      
+      // Use window.location.href for full page reload to ensure middleware can read the cookie
+      // This is critical because:
+      // 1. Cookie needs to be available on the server side for middleware to read
+      // 2. Client-side navigation (router.replace) doesn't trigger a full page reload
+      // 3. Middleware runs on the server and needs the cookie in the request headers
+      // 4. A small delay ensures the cookie is fully set before navigation
+      setTimeout(() => {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Auth] 🚀 Executing redirect to:', cleanRedirectUrl)
+          console.log('[Auth] Final token check:', {
+            token: getToken() ? 'present' : 'missing',
+            username: getUsername() ? 'present' : 'missing',
+            cookieToken: typeof document !== 'undefined' ? document.cookie.includes('token=') : 'N/A',
+          })
+        }
+        
+        if (typeof window !== 'undefined') {
+          // Use window.location.href for full page reload
+          // This ensures the cookie is sent with the request and middleware can read it
+          window.location.href = cleanRedirectUrl
+        } else {
+          router.replace(cleanRedirectUrl)
+        }
+      }, 300) // Increased delay to ensure cookie is fully set and synced
     } catch (error) {
+      console.error('[Auth] Login error:', error)
       setState((prev) => ({ ...prev, isLoading: false }))
       throw error
     }
@@ -106,15 +183,42 @@ export function useAuth(): UseAuthReturn {
 
   const register = useCallback(async (userData: RegisterRequest) => {
     try {
-      // API returns ApiResponse<User>, so we need to access .data
-      await registerApi(userData)
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Auth] Register request:', userData)
+      }
       
-      // After registration, redirect to login
-      router.push('/login')
+      // API returns ApiResponse<User>, so we need to access .data
+      const result = await registerApi(userData)
+      
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Auth] Register response:', result)
+      }
+      
+      // Clear any existing auth data before registration completes
+      // This ensures a clean state
+      removeToken()
+      removeUsername()
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token')
+        localStorage.removeItem('username')
+      }
+      
+      // Reset auth state
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+      })
+      
+      // Note: Don't redirect here - let the calling component handle the redirect
+      // This allows the login page to switch to login form instead of navigating away
     } catch (error) {
+      console.error('[Auth] Register error:', error)
       throw error
     }
-  }, [router])
+  }, [])
 
   const logout = useCallback(async () => {
     try {
