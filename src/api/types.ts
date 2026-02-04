@@ -12,11 +12,14 @@ export interface ApiResponse<T = any> {
 export interface PaginatedResponse<T> {
   list?: T[]
   records?: T[]
+  elements?: T[]  // Backend returns "elements" field
   total: number
   page?: number
   current?: number
   pageSize?: number
   size?: number
+  start?: number  // Backend returns "start" field (offset)
+  page_size?: number  // Backend returns "page_size" field
 }
 
 // User Types
@@ -156,6 +159,12 @@ export interface UpdateShortLinkRequest {
   domain?: string
 }
 
+export interface RecycleBinListParams {
+  gidList?: string[]  // List of group IDs for recycle bin query
+  current?: number    // Page number (maps to pageNum)
+  size?: number       // Page size (maps to pageSize)
+}
+
 export interface ShortLinkListParams {
   page?: number
   pageSize?: number
@@ -167,6 +176,7 @@ export interface ShortLinkListParams {
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
   orderTag?: string | null
+  enableStatus?: number  // 0 = active, 1 = deleted (in recycle bin)
 }
 
 // Analytics Types

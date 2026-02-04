@@ -8,6 +8,7 @@ import type {
   BatchCreateShortLinkRequest,
   UpdateShortLinkRequest,
   ShortLinkListParams,
+  RecycleBinListParams,
   PaginatedResponse,
   AnalyticsResponse,
 } from '../types'
@@ -31,11 +32,30 @@ export const queryPage = async (params?: ShortLinkListParams): Promise<ApiRespon
   const fullUrl = `${backendUrl}/api/shortlink/v1/links/page`
   
   // Map frontend params to backend format: current -> pageNo, size -> pageSize
-  const requestBody: any = {}
-  if (params?.gid) requestBody.gid = params.gid
-  if (params?.orderTag) requestBody.orderTag = params.orderTag
-  if (params?.current !== undefined) requestBody.pageNo = params.current
-  if (params?.size !== undefined) requestBody.pageSize = params.size
+  // Backend expects: { gid?, orderTag?, pageNo, pageSize, enableStatus? }
+  const requestBody: any = {
+    pageNo: params?.current ?? 1,  // Default to 1 if not provided
+    pageSize: params?.size ?? 15,  // Default to 15 if not provided
+  }
+  
+  // Only include gid if it's not null/undefined (backend may handle null differently)
+  if (params?.gid !== null && params?.gid !== undefined) {
+    requestBody.gid = params.gid
+  }
+  
+  // Only include orderTag if provided
+  if (params?.orderTag) {
+    requestBody.orderTag = params.orderTag
+  }
+  
+  // Filter out deleted items (enableStatus === 1) - only show active items (enableStatus === 0 or undefined)
+  // If enableStatus is explicitly set, use it; otherwise default to 0 (active only)
+  if (params?.enableStatus !== undefined) {
+    requestBody.enableStatus = params.enableStatus
+  } else {
+    // Default to only show active items (enableStatus === 0)
+    requestBody.enableStatus = 0
+  }
   
   // Debug logging in development
   if (process.env.NODE_ENV === 'development') {
@@ -52,7 +72,7 @@ export const queryPage = async (params?: ShortLinkListParams): Promise<ApiRespon
       },
       timeout: 15000,
     })
-    return response.data
+  return response.data
   } catch (error: any) {
     if (process.env.NODE_ENV === 'development') {
       console.error('[API] Query page error:', {
@@ -98,16 +118,16 @@ export const addSmallLink = async (data: CreateShortLinkRequest): Promise<ApiRes
     }
     
     try {
-      // Use axios directly with full URL and auth headers
-      const response = await axios.post<ApiResponse<ShortLink>>(fullUrl, data, {
-        headers: {
-          'Content-Type': 'application/json',
-          Token: token || '',
-          Username: username || '',
-        },
-        timeout: 15000,
-      })
-      return response.data
+    // Use axios directly with full URL and auth headers
+    const response = await axios.post<ApiResponse<ShortLink>>(fullUrl, data, {
+      headers: {
+        'Content-Type': 'application/json',
+        Token: token || '',
+        Username: username || '',
+      },
+      timeout: 15000,
+    })
+    return response.data
     } catch (error: any) {
       // Enhanced error logging
       if (process.env.NODE_ENV === 'development') {
@@ -175,10 +195,10 @@ export const addLinks = async (data: BatchCreateShortLinkRequest): Promise<Array
         Token: token || '',
         Username: username || '',
       },
-      responseType: 'arraybuffer',
+    responseType: 'arraybuffer',
       timeout: 30000, // Longer timeout for batch operations
-    })
-    return response.data
+  })
+  return response.data
   } catch (error: any) {
     if (process.env.NODE_ENV === 'development') {
       console.error('[API] Batch create error:', {
@@ -223,7 +243,7 @@ export const editSmallLink = async (data: UpdateShortLinkRequest): Promise<ApiRe
       },
       timeout: 15000,
     })
-    return response.data
+  return response.data
   } catch (error: any) {
     if (process.env.NODE_ENV === 'development') {
       console.error('[API] Update link error:', {
@@ -268,7 +288,7 @@ export const queryTitle = async (params: { url: string }): Promise<ApiResponse<{
       },
       timeout: 15000,
     })
-    return response.data
+  return response.data
   } catch (error: any) {
     if (process.env.NODE_ENV === 'development') {
       console.error('[API] Query title error:', {
@@ -327,7 +347,9 @@ export const deleteShortLink = async (data: { id: string }): Promise<void> => {
 
 // Query trash list (GET /api/shortlink/v1/trash/list?pageNum=1&pageSize=20)
 // Backend endpoint: GET /api/shortlink/v1/trash/list (not /recycle-bin/page)
-export const queryRecycleBin = async (params?: ShortLinkListParams): Promise<ApiResponse<PaginatedResponse<ShortLink>>> => {
+// Query recycle bin (POST /api/shortlink/v1/trash/list)
+// Backend expects: { gidList: string[], pageNum: number, pageSize: number }
+export const queryRecycleBin = async (params?: RecycleBinListParams): Promise<ApiResponse<PaginatedResponse<ShortLink>>> => {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
   const token = getToken()
   const username = getUsername()
@@ -336,21 +358,31 @@ export const queryRecycleBin = async (params?: ShortLinkListParams): Promise<Api
   const backendUrl = apiBaseUrl ? apiBaseUrl.replace(/\/api\/shortlink\/admin\/v1$/, '') : 'http://localhost:8080'
   const fullUrl = `${backendUrl}/api/shortlink/v1/trash/list`
   
-  // Map params: current -> pageNum, size -> pageSize
-  const queryParams: any = {}
-  if (params?.current) queryParams.pageNum = params.current
-  if (params?.size) queryParams.pageSize = params.size
-  if (params?.gid) queryParams.gid = params.gid
+  // Map params: current -> pageNum, size -> pageSize, gidList -> gidList
+  const requestBody: {
+    gidList?: string[]
+    pageNum: number
+    pageSize: number
+  } = {
+    pageNum: params?.current || 1,
+    pageSize: params?.size || 10,
+  }
+  
+  // Include gidList if provided
+  if (params?.gidList && params.gidList.length > 0) {
+    requestBody.gidList = params.gidList
+  }
   
   // Debug logging in development
   if (process.env.NODE_ENV === 'development') {
-    console.log('[API] Query trash list:', { url: fullUrl, params: queryParams })
+    console.log('[API] Query trash list:', { url: fullUrl, requestBody })
   }
   
   try {
-    const response = await axios.get<ApiResponse<PaginatedResponse<ShortLink>>>(fullUrl, {
-      params: queryParams,
+    // Use POST method with body (matching backend DTO)
+    const response = await axios.post<ApiResponse<PaginatedResponse<ShortLink>>>(fullUrl, requestBody, {
       headers: {
+        'Content-Type': 'application/json',
         Token: token || '',
         Username: username || '',
       },
@@ -361,6 +393,7 @@ export const queryRecycleBin = async (params?: ShortLinkListParams): Promise<Api
     if (process.env.NODE_ENV === 'development') {
       console.error('[API] Query trash error:', {
         url: fullUrl,
+        requestBody,
         error: error.message,
         response: error.response?.data,
         status: error.response?.status,
@@ -371,7 +404,7 @@ export const queryRecycleBin = async (params?: ShortLinkListParams): Promise<Api
 }
 
 // Alias for compatibility
-export const getRecycleBinLinks = async (params?: ShortLinkListParams): Promise<PaginatedResponse<ShortLink>> => {
+export const getRecycleBinLinks = async (params?: RecycleBinListParams): Promise<PaginatedResponse<ShortLink>> => {
   const result = await queryRecycleBin(params)
   return result.data
 }
@@ -490,7 +523,7 @@ export const queryLinkStats = async (params?: any): Promise<ApiResponse<Analytic
       },
       timeout: 15000,
     })
-    return response.data
+  return response.data
   } catch (error: any) {
     if (process.env.NODE_ENV === 'development') {
       console.error('[API] Query stats error:', {
@@ -535,7 +568,7 @@ export const queryLinkTable = async (params?: any): Promise<ApiResponse<any>> =>
       },
       timeout: 15000,
     })
-    return response.data
+  return response.data
   } catch (error: any) {
     if (process.env.NODE_ENV === 'development') {
       console.error('[API] Query access records error:', {

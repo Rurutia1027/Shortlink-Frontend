@@ -42,7 +42,7 @@ export interface ChartsInfoRef {
 const ChartsInfo = forwardRef<ChartsInfoRef, ChartsInfoProps>(
   ({ title, info, tableInfo, isGroup = false, nums = 0, favicon, originUrl, onChangeTime, onChangePage }, ref) => {
     const [visible, setVisible] = useState(false)
-    const [activeTab, setActiveTab] = useState('访问数据')
+    const [activeTab, setActiveTab] = useState('Analytics')
     const [dateValue, setDateValue] = useState<[Dayjs, Dayjs] | null>([
       dayjs(getLastWeekFormatDate()),
       dayjs(getTodayFormatDate()),
@@ -98,7 +98,7 @@ const ChartsInfo = forwardRef<ChartsInfoRef, ChartsInfoProps>(
     const handleClose = () => {
       setDateValue([dayjs(getLastWeekFormatDate()), dayjs(getTodayFormatDate())])
       setVisible(false)
-      setActiveTab('访问数据')
+      setActiveTab('Analytics')
       setPageParams({ current: 1, size: 10 })
     }
 
@@ -110,7 +110,7 @@ const ChartsInfo = forwardRef<ChartsInfoRef, ChartsInfoProps>(
     // Format daily data for line chart
     const lineChartData = info?.daily?.map((item) => {
       const dateParts = item.date.split('-')
-      const formattedDate = `${dateParts[1]}月${dateParts[2]}日`
+      const formattedDate = `${dateParts[1]}/${dateParts[2]}`
       return {
         date: formattedDate,
         pv: item.pv,
@@ -160,24 +160,24 @@ const ChartsInfo = forwardRef<ChartsInfoRef, ChartsInfoProps>(
     // Access log table columns
     const accessLogColumns = [
       {
-        title: '访问时间',
+        title: 'Access Time',
         dataIndex: 'createTime',
         key: 'createTime',
         width: 160,
       },
       {
-        title: '访问IP',
+        title: 'Access IP',
         dataIndex: 'ip',
         key: 'ip',
         width: 140,
       },
       {
-        title: '访客地区',
+        title: 'Visitor Region',
         dataIndex: 'locale',
         key: 'locale',
       },
       {
-        title: '设备信息',
+        title: 'Device Info',
         key: 'device',
         render: (_: any, record: AccessLog) => (
           <Space>
@@ -189,7 +189,7 @@ const ChartsInfo = forwardRef<ChartsInfoRef, ChartsInfoProps>(
         ),
       },
       ...(isGroup ? [] : [{
-        title: '访客类型',
+        title: 'Visitor Type',
         dataIndex: 'uvType',
         key: 'uvType',
       }]),
@@ -254,15 +254,15 @@ const ChartsInfo = forwardRef<ChartsInfoRef, ChartsInfoProps>(
           onChange={setActiveTab}
           items={[
             {
-              key: '访问数据',
-              label: '访问数据',
+              key: 'Analytics',
+              label: 'Analytics',
               children: (
                 <div className={styles.contentBox}>
-                  {/* 访问曲线 - Visit Trends */}
+                  {/* Visit Trends */}
                   <TitleContent
                     className={styles.chartItem}
                     style={{ width: '800px' }}
-                    title="访问曲线"
+                    title="Visit Trends"
                     titleButton={
                       <Button size="small" onClick={() => setIsLine(!isLine)}>
                         {isLine ? 'Switch to Table' : 'Switch to Line'}
@@ -273,15 +273,15 @@ const ChartsInfo = forwardRef<ChartsInfoRef, ChartsInfoProps>(
                       <div className={styles.listChart}>
                         <div className={styles.top10}>
                           <div className={styles.keyValue}>
-                            <span>访问次数</span>
+                            <span>Page Views</span>
                             <span>{totalPv}</span>
                           </div>
                           <div className={styles.keyValue}>
-                            <span>访问人数</span>
+                            <span>Unique Visitors</span>
                             <span>{totalUv}</span>
                           </div>
                           <div className={styles.keyValue}>
-                            <span>访问IP数</span>
+                            <span>Unique IPs</span>
                             <span>{totalUip}</span>
                           </div>
                         </div>
@@ -294,10 +294,10 @@ const ChartsInfo = forwardRef<ChartsInfoRef, ChartsInfoProps>(
                         <Table
                           dataSource={lineChartData}
                           columns={[
-                            { title: '时间', dataIndex: 'date', key: 'date', width: 160 },
-                            { title: '访问次数', dataIndex: 'pv', key: 'pv', width: 160 },
-                            { title: '访问人数', dataIndex: 'uv', key: 'uv', width: 160 },
-                            { title: '访问IP数', dataIndex: 'uip', key: 'uip', width: 160 },
+                            { title: 'Date', dataIndex: 'date', key: 'date', width: 160 },
+                            { title: 'Page Views', dataIndex: 'pv', key: 'pv', width: 160 },
+                            { title: 'Unique Visitors', dataIndex: 'uv', key: 'uv', width: 160 },
+                            { title: 'Unique IPs', dataIndex: 'uip', key: 'uip', width: 160 },
                           ]}
                           pagination={false}
                           size="small"
@@ -306,8 +306,8 @@ const ChartsInfo = forwardRef<ChartsInfoRef, ChartsInfoProps>(
                     )}
                   </TitleContent>
 
-                  {/* 24小时分布 - 24 Hour Distribution */}
-                  <TitleContent className={styles.chartItem} title="24小时分布" style={{ width: '800px' }}>
+                  {/* 24 Hour Distribution */}
+                  <TitleContent className={styles.chartItem} title="24 Hour Distribution" style={{ width: '800px' }}>
                     <BarChart
                       chartData={{
                         xAxis: Array.from({ length: 24 }, (_, i) => i),
@@ -317,68 +317,68 @@ const ChartsInfo = forwardRef<ChartsInfoRef, ChartsInfoProps>(
                   </TitleContent>
 
                   {/* Note: China/World maps removed - would require ECharts or map library */}
-                  {/* 访问地区 - Visit Region (simplified) */}
+                  {/* Visit Region (simplified) */}
                   {chinaMapData.length > 0 && (
-                    <TitleContent className={styles.chartItem} title="访问地区 TOP 10" style={{ width: '390px' }}>
+                    <TitleContent className={styles.chartItem} title="Top 10 Regions" style={{ width: '390px' }}>
                       <div style={{ padding: '10px', maxHeight: '270px', overflowY: 'auto' }}>
                         {chinaMapData.slice(0, 10).map((item, index) => (
                           <div key={index} className={styles.keyValue}>
                             <span>{index + 1}. {item.name}</span>
                             <span>{(item.ratio * 100).toFixed(2)}%</span>
-                            <span>{item.value}次</span>
+                            <span>{item.value} visits</span>
                           </div>
                         ))}
                       </div>
                     </TitleContent>
                   )}
 
-                  {/* 高频访问IP */}
-                  <TitleContent className={styles.chartItem} title="高频访问IP" style={{ width: '390px' }}>
+                  {/* Top IPs */}
+                  <TitleContent className={styles.chartItem} title="Top IPs" style={{ width: '390px' }}>
                     <KeyValue dataLists={info?.topIpStats} />
                   </TitleContent>
 
-                  {/* 一周分布 */}
-                  <TitleContent className={styles.chartItem} title="一周分布" style={{ width: '390px' }}>
+                  {/* Weekly Distribution */}
+                  <TitleContent className={styles.chartItem} title="Weekly Distribution" style={{ width: '390px' }}>
                     <BarChart
                       chartData={{
-                        xAxis: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                        xAxis: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                         value: info?.weekdayStats || Array(7).fill(0),
                       }}
                     />
                   </TitleContent>
 
-                  {/* 操作系统 */}
-                  <TitleContent className={styles.chartItem} title="操作系统" style={{ width: '390px' }}>
+                  {/* Operating System */}
+                  <TitleContent className={styles.chartItem} title="Operating System" style={{ width: '390px' }}>
                     <ProgressLine dataLists={info?.osStats} />
                   </TitleContent>
 
-                  {/* 访问浏览器 */}
-                  <TitleContent className={styles.chartItem} title="访问浏览器" style={{ width: '390px' }}>
+                  {/* Browser */}
+                  <TitleContent className={styles.chartItem} title="Browser" style={{ width: '390px' }}>
                     <ProgressLine dataLists={info?.browserStats} />
                   </TitleContent>
 
-                  {/* 访客类型 */}
+                  {/* Visitor Type */}
                   {!isGroup && (
-                    <TitleContent className={styles.chartItem} title="访客类型" style={{ width: '390px' }}>
-                      <ProgressPie labels={['新访客', '旧访客']} data={userTypeList} />
+                    <TitleContent className={styles.chartItem} title="Visitor Type" style={{ width: '390px' }}>
+                      <ProgressPie labels={['New Visitors', 'Returning Visitors']} data={userTypeList} />
                     </TitleContent>
                   )}
 
-                  {/* 访问网络 */}
-                  <TitleContent className={styles.chartItem} title="访问网络" style={{ width: '390px' }}>
-                    <ProgressPie labels={['WIFI', '移动数据']} data={netWorkList} />
+                  {/* Network Type */}
+                  <TitleContent className={styles.chartItem} title="Network Type" style={{ width: '390px' }}>
+                    <ProgressPie labels={['WIFI', 'Mobile Data']} data={netWorkList} />
                   </TitleContent>
 
-                  {/* 访问设备 */}
-                  <TitleContent className={styles.chartItem} title="访问设备" style={{ width: '390px' }}>
+                  {/* Device Type */}
+                  <TitleContent className={styles.chartItem} title="Device Type" style={{ width: '390px' }}>
                     <ProgressPie labels={['Computer', 'Mobile Device']} data={deviceList} />
                   </TitleContent>
                 </div>
               ),
             },
             {
-              key: '历史记录',
-              label: '历史记录',
+              key: 'History',
+              label: 'History',
               children: (
                 <div>
                   <Table

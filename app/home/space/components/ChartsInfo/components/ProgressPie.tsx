@@ -38,10 +38,10 @@ export default function ProgressPie({ labels, data, style }: ProgressPieProps) {
 
   const data1 = data[0] || 0
   const data2 = data[1] || 0
-  const label1 = labels[0] || '数据1'
-  const label2 = labels[1] || '数据2'
-  const unit1 = label1 === '新访客' ? '人' : '次'
-  const unit2 = label2 === '旧访客' ? '人' : '次'
+  const label1 = labels[0] || 'Data 1'
+  const label2 = labels[1] || 'Data 2'
+  const unit1 = label1 === 'New Visitors' ? 'visitors' : 'visits'
+  const unit2 = label2 === 'Returning Visitors' ? 'visitors' : 'visits'
 
   return (
     <div style={{ ...style, padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}>

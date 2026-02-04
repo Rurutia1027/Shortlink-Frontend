@@ -78,7 +78,7 @@ export default function MySpacePage() {
   const [pageParams, setPageParams] = useState({
     gid: null as string | null,
     current: 1,
-    size: 15,
+    size: 10, // Default page size - fixed to show 10 rows without scrolling
     orderTag: null as string | null,
   })
 
@@ -117,7 +117,7 @@ export default function MySpacePage() {
   )
 
   // Load groups
-  const loadGroups = useCallback(async () => {
+  const loadGroups = useCallback(async (autoSelectNewGroup: boolean = false) => {
     try {
       const res = await queryGroup()
       
@@ -138,12 +138,34 @@ export default function MySpacePage() {
         }
         
         setGroups(reversedList)
-        
-        // Set default selected group
-        if (reversedList.length > 0 && selectedIndex < reversedList.length) {
+      
+        // If autoSelectNewGroup is true, select the last group (newest)
+        if (autoSelectNewGroup && reversedList.length > 0) {
+          const newGroupIndex = reversedList.length - 1
+          const newGroup = reversedList[newGroupIndex]
+          
+          if (newGroup?.gid) {
+            setSelectedIndex(newGroupIndex)
+            setSelectedGroupId(newGroup.gid)
+            setIsRecycleBin(false)
+            // Update page params - this will trigger useEffect to call loadTableData
+            setPageParams((prev) => ({
+              ...prev,
+              gid: newGroup.gid || null,
+              current: 1,
+            }))
+            // Note: loadTableData will be automatically called by useEffect when pageParams changes
+          }
+        } else if (reversedList.length > 0 && selectedIndex >= 0 && selectedIndex < reversedList.length) {
+          // Keep current selection if valid
           setSelectedGroupId(reversedList[selectedIndex]?.gid || null)
           setPageParams((prev) => ({ ...prev, gid: reversedList[selectedIndex]?.gid || null }))
-        }
+        } else if (reversedList.length > 0 && selectedIndex < 0) {
+          // If no selection, select first group
+          setSelectedIndex(0)
+          setSelectedGroupId(reversedList[0]?.gid || null)
+          setPageParams((prev) => ({ ...prev, gid: reversedList[0]?.gid || null }))
+      }
       } else {
         console.error('[Group API] Failed to load groups:', res.message)
         message.error(res.message || 'Failed to load groups')
@@ -163,6 +185,7 @@ export default function MySpacePage() {
         current: pageParams.current,
         size: pageParams.size,
         gid: pageParams.gid,
+        enableStatus: 0,  // Only show active items (not deleted), exclude enableStatus === 1
       }
       if (pageParams.orderTag) {
         params.orderTag = pageParams.orderTag
@@ -177,10 +200,34 @@ export default function MySpacePage() {
       
       // Backend Result format: { code: "0", message, data: PaginatedResponse }
       if (isSuccessCode(res.code)) {
-        // res.data is PaginatedResponse<ShortLink> with records and total
+        // res.data is PaginatedResponse<ShortLink>
+        // Backend returns: { start, page_size, total, elements }
         const paginatedData = res.data as PaginatedResponse<ShortLink>
-        setTableData(paginatedData.records || paginatedData.list || [])
-        setTotalNums(Number(paginatedData.total) || 0)
+        
+        // Backend uses "elements" field, fallback to "records" or "list" for compatibility
+        // Backend should already filter enableStatus === 0 (active items only)
+        // But we add an extra filter as a safety measure
+        const allData = paginatedData.elements || paginatedData.records || paginatedData.list || []
+        const dataList = allData.filter((item: ShortLink) => item.enableStatus !== 1)
+        
+        if (process.env.NODE_ENV === 'development') {
+          const deletedCount = allData.filter((item: ShortLink) => item.enableStatus === 1).length
+          console.log('[Table] Parsed paginated data:', {
+            elements: paginatedData.elements?.length,
+            records: paginatedData.records?.length,
+            list: paginatedData.list?.length,
+            backendTotal: paginatedData.total,
+            allDataLength: allData.length,
+            filteredDataLength: dataList.length,
+            deletedCount: deletedCount,
+            note: deletedCount > 0 ? 'Warning: Backend returned deleted items, filtered out' : 'All items are active',
+          })
+        }
+        
+        setTableData(dataList)
+        // Use backend total (should already exclude deleted items if backend filters correctly)
+        // If backend doesn't filter, the count may be slightly off, but pagination should still work
+        setTotalNums(Number(paginatedData.total) || dataList.length)
       } else {
         message.error(res.message || 'Failed to load data')
       }
@@ -195,23 +242,48 @@ export default function MySpacePage() {
   const loadRecycleBin = useCallback(async () => {
     setLoading(true)
     try {
+      // Collect all group IDs for gidList parameter
+      const gidList = groups.map(group => group.gid).filter((gid): gid is string => !!gid)
+      
       const res = await queryRecycleBin({
+        gidList: gidList.length > 0 ? gidList : undefined,
         current: pageParams.current,
         size: pageParams.size,
       })
-      const responseData = res.data as any
       
-      // Vue: res.data?.data?.records
-      setTableData(responseData.data?.records || responseData.data?.list || [])
-      const total = Number(responseData.data?.total) || 0
-      setTotalNums(total)
-      setRecycleBinNums(total)
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Recycle Bin] Query response:', res)
+      }
+      
+      // Backend returns: { code: "0", data: { elements, total, ... } }
+      if (isSuccessCode(res.code)) {
+        const paginatedData = res.data as PaginatedResponse<ShortLink>
+        const dataList = paginatedData.elements || paginatedData.records || paginatedData.list || []
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Recycle Bin] Parsed data:', {
+            elements: paginatedData.elements?.length,
+            records: paginatedData.records?.length,
+            list: paginatedData.list?.length,
+            total: paginatedData.total,
+            dataListLength: dataList.length,
+          })
+        }
+        
+        setTableData(dataList)
+        const total = Number(paginatedData.total) || 0
+        setTotalNums(total)
+        setRecycleBinNums(total)
+      } else {
+        message.error(res.message || 'Failed to load recycle bin')
+      }
     } catch (error: any) {
       message.error(error.message || 'Failed to load recycle bin')
     } finally {
       setLoading(false)
     }
-  }, [pageParams.current, pageParams.size])
+  }, [pageParams.current, pageParams.size, groups])
 
   useEffect(() => {
     loadGroups()
@@ -267,7 +339,10 @@ export default function MySpacePage() {
         message.success('Group added successfully')
         setIsAddGroup(false)
         groupForm.resetFields()
-        await loadGroups()
+        
+        // Reload groups list and automatically select the newly created group
+        // autoSelectNewGroup=true will select the last group (newest) and refresh table data
+        await loadGroups(true)
       } else {
         message.error(res.message || 'Failed to add group')
       }
@@ -751,7 +826,7 @@ export default function MySpacePage() {
           <div>
             Groups <span>({groups.length} total)</span>
           </div>
-          <div className={styles.hoverBox} onClick={() => setIsAddGroup(true)}>
+          <div className={`${styles.hoverBox} ${styles.addButton}`} onClick={() => setIsAddGroup(true)}>
             <PlusOutlined style={{ fontSize: '18px' }} />
           </div>
         </div>
@@ -790,8 +865,8 @@ export default function MySpacePage() {
             }`}
             onClick={handleRecycleBin}
           >
-            Recycle Bin
-            <DeleteOutlined style={{ marginLeft: '5px', fontSize: '20px' }} />
+            <span className={styles.recycleBinText}>Recycle Bin</span>
+            <DeleteOutlined className={styles.recycleBinIcon} style={{ marginLeft: '5px', fontSize: '20px' }} />
           </div>
         </div>
       </div>
@@ -821,14 +896,16 @@ export default function MySpacePage() {
             </div>
           )}
 
+          <div className={styles.tableContainer}>
           <Table
             columns={columns}
             dataSource={tableData}
             loading={loading}
             rowKey={(record) => record.id || record.fullShortUrl || ''}
             pagination={false}
-            scroll={{ y: 'calc(100vh - 340px)' }}
+              size="small"
           />
+          </div>
 
           <div className={styles.paginationBlock}>
             <Pagination
@@ -837,9 +914,9 @@ export default function MySpacePage() {
               total={totalNums}
               showSizeChanger
               showQuickJumper
-              pageSizeOptions={['10', '15', '20', '30']}
+              pageSizeOptions={['5', '10', '15', '20', '30']}
               onChange={(page, size) => {
-                setPageParams((prev) => ({ ...prev, current: page, size: size || 15 }))
+                setPageParams((prev) => ({ ...prev, current: page, size: size || 10 }))
               }}
               onShowSizeChange={(current, size) => {
                 setPageParams((prev) => ({ ...prev, current: 1, size }))

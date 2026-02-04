@@ -14,6 +14,7 @@ const apiClient: AxiosInstance = axios.create({
   timeout: 15000, // 15 seconds (matching Vue implementation)
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json', // Explicitly set Accept header for Next.js rewrites
   },
 })
 
@@ -35,6 +36,12 @@ apiClient.interceptors.request.use(
         hasUsername: !!username,
         token: token ? `${token.substring(0, 10)}...` : 'missing',
         username: username || 'missing',
+        headers: {
+          'Content-Type': config.headers?.['Content-Type'],
+          'Accept': config.headers?.['Accept'],
+          'Token': config.headers?.Token ? 'present' : 'missing',
+          'Username': config.headers?.Username ? 'present' : 'missing',
+        },
         data: config.data ? (typeof config.data === 'string' ? config.data : JSON.stringify(config.data)) : undefined,
       })
     }

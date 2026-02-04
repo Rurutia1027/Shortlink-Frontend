@@ -1,4 +1,5 @@
 import apiClient from '../client'
+import { getUsername } from '@/src/lib/auth'
 import type { ApiResponse, LoginRequest, LoginResponse, RegisterRequest, User } from '../types'
 
 /**
@@ -71,7 +72,14 @@ export const updateUser = async (data: Partial<User>): Promise<User> => {
 export const login = async (data: LoginRequest): Promise<ApiResponse<LoginResponse>> => {
   // Debug logging in development
   if (process.env.NODE_ENV === 'development') {
-    console.log('[User API] Login request:', { username: data.username, hasPassword: !!data.password })
+    const fullUrl = `${apiClient.defaults.baseURL}/user/login`
+    console.log('[User API] Login request:', { 
+      username: data.username, 
+      hasPassword: !!data.password,
+      baseURL: apiClient.defaults.baseURL,
+      fullURL: fullUrl,
+      expectedProxy: 'http://localhost:8080/api/shortlink/admin/v1/user/login',
+    })
   }
   
   try {
@@ -86,11 +94,16 @@ export const login = async (data: LoginRequest): Promise<ApiResponse<LoginRespon
   } catch (error: any) {
     // Enhanced error logging
     if (process.env.NODE_ENV === 'development') {
+      const fullUrl = `${apiClient.defaults.baseURL}/user/login`
       console.error('[User API] Login error:', {
         error: error.message,
         response: error.response?.data,
         status: error.response?.status,
         code: error.code,
+        requestURL: fullUrl,
+        actualRequestURL: error.config?.url,
+        actualBaseURL: error.config?.baseURL,
+        headers: error.config?.headers,
       })
     }
     throw error
@@ -134,16 +147,67 @@ export const hasUsername = async (params: { username: string }): Promise<ApiResp
   }
 }
 
-// Query user info by username (GET /actual/user/{username})
+// Query user info by username (GET /actual/{username})
+// Backend endpoint: GET /api/shortlink/admin/v1/user/actual/{username}
 export const queryUserInfo = async (username: string): Promise<ApiResponse<User>> => {
-  const response = await apiClient.get<ApiResponse<User>>(`/actual/user/${username}`)
-  return response.data
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[User API] Query user info by username:', username)
+  }
+  
+  try {
+    const response = await apiClient.get<ApiResponse<User>>(`/user/actual/${username}`)
+    
+    // Debug logging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[User API] Query user info response:', response.data)
+    }
+    
+    return response.data
+  } catch (error: any) {
+    // Enhanced error logging
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[User API] Query user info error:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        username,
+      })
+    }
+    throw error
+  }
 }
 
-// Alias for compatibility - get current user
+// Get current logged-in user info (GET /user/info)
+// Backend endpoint: GET /api/shortlink/admin/v1/user/info
+// Note: Backend should define /user/info BEFORE /user/{username} to avoid route conflict
+// The endpoint extracts user info from Token header
 export const getCurrentUser = async (): Promise<User> => {
-  // This might need to be adjusted based on how you get current username
-  // For now, assuming it uses the token to get current user
-  const response = await apiClient.get<ApiResponse<User>>('/user/info')
-  return response.data.data
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[User API] Getting current user info from /user/info')
+  }
+  
+  try {
+    // Call /user/info endpoint - backend will extract user from Token header
+    const response = await apiClient.get<ApiResponse<User>>('/user/info')
+    
+    // Debug logging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[User API] Current user response:', response.data)
+    }
+    
+    // Backend returns ApiResponse<User>, extract the user data
+    return response.data.data || response.data
+  } catch (error: any) {
+    // Enhanced error logging
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[User API] Get current user error:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      })
+    }
+    throw error
+  }
 }

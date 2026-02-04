@@ -14,11 +14,18 @@ export function getToken(): string | undefined {
 }
 
 export function setToken(token: string, rememberMe?: boolean): void {
-  if (rememberMe) {
-    Cookies.set(TokenKey, token, { expires: 7 }) // 7 days
-  } else {
-    Cookies.set(TokenKey, token) // Session cookie (matching Vue)
+  // Set cookie with SameSite=None and Secure for cross-site requests
+  // But for localhost, use SameSite=Lax to ensure middleware can read it
+  const cookieOptions: Cookies.CookieAttributes = {
+    sameSite: 'lax', // Allow cookie to be sent with same-site requests
+    path: '/', // Make cookie available for all paths
   }
+  
+  if (rememberMe) {
+    cookieOptions.expires = 7 // 7 days
+  }
+  
+  Cookies.set(TokenKey, token, cookieOptions)
 }
 
 export function removeToken(): void {
@@ -35,11 +42,17 @@ export function getUsername(): string | undefined {
 }
 
 export function setUsername(username: string, rememberMe?: boolean): void {
-  if (rememberMe) {
-    Cookies.set(USERNAME_KEY, username, { expires: 7 }) // 7 days
-  } else {
-    Cookies.set(USERNAME_KEY, username) // Session cookie  
+  // Set cookie with SameSite=Lax to ensure middleware can read it
+  const cookieOptions: Cookies.CookieAttributes = {
+    sameSite: 'lax', // Allow cookie to be sent with same-site requests
+    path: '/', // Make cookie available for all paths
   }
+  
+  if (rememberMe) {
+    cookieOptions.expires = 7 // 7 days
+  }
+  
+  Cookies.set(USERNAME_KEY, username, cookieOptions)
 }
 
 export function removeUsername(): void {

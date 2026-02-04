@@ -15,7 +15,7 @@ type Story = StoryObj<typeof ProgressPie>
 
 export const NewVsReturning: Story = {
   args: {
-    labels: ['新访客', '旧访客'],
+    labels: ['New Visitors', 'Returning Visitors'],
     data: [600, 634],
   },
 }

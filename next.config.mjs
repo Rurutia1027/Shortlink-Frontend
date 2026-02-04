@@ -16,13 +16,6 @@ const nextConfig = {
         // This ensures page routes like /home are not affected
         source: '/api/shortlink/:path*',
         destination: `${gatewayUrl}/api/shortlink/:path*`,
-        has: [
-          {
-            type: 'header',
-            key: 'accept',
-            value: '.*application/json.*',
-          },
-        ],
       },
     ]
   },

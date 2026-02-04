@@ -45,8 +45,8 @@ const mockAnalyticsData: AnalyticsResponse = {
     { browser: 'Edge', cnt: 134 },
   ],
   uvTypeStats: [
-    { uvType: '新访客', cnt: 600 },
-    { uvType: '旧访客', cnt: 634 },
+    { uvType: 'newUser', cnt: 600 },
+    { uvType: 'oldUser', cnt: 634 },
   ],
   deviceStats: [
     { device: 'Desktop', cnt: 700 },

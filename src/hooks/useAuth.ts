@@ -106,7 +106,7 @@ export function useAuth(): UseAuthReturn {
       
       // Save token and username
       if (response.token && username) {
-        setToken(response.token, credentials.rememberMe || false)
+      setToken(response.token, credentials.rememberMe || false)
         setUsername(username, credentials.rememberMe || false)
         
         // Verify token and username were saved
@@ -150,43 +150,30 @@ export function useAuth(): UseAuthReturn {
         })
       }
       
-      // Use setTimeout to ensure state updates and cookie setting are complete before redirect
-      // This also allows any success messages to be displayed briefly
+      // Use window.location.href for full page reload to ensure middleware can read the cookie
+      // This is critical because:
+      // 1. Cookie needs to be available on the server side for middleware to read
+      // 2. Client-side navigation (router.replace) doesn't trigger a full page reload
+      // 3. Middleware runs on the server and needs the cookie in the request headers
+      // 4. A small delay ensures the cookie is fully set before navigation
       setTimeout(() => {
         if (process.env.NODE_ENV === 'development') {
           console.log('[Auth] 🚀 Executing redirect to:', cleanRedirectUrl)
           console.log('[Auth] Final token check:', {
             token: getToken() ? 'present' : 'missing',
             username: getUsername() ? 'present' : 'missing',
+            cookieToken: typeof document !== 'undefined' ? document.cookie.includes('token=') : 'N/A',
           })
         }
         
         if (typeof window !== 'undefined') {
-          // Try router.replace first (client-side navigation, faster)
-          // If that doesn't work or cookie isn't read, fallback to window.location.href
-          try {
-            // Use router.replace to avoid adding to history
-            router.replace(cleanRedirectUrl)
-            
-            // Also set window.location as backup (in case router.replace doesn't trigger navigation)
-            // This ensures the page will definitely navigate
-            setTimeout(() => {
-              if (window.location.pathname !== cleanRedirectUrl) {
-                if (process.env.NODE_ENV === 'development') {
-                  console.log('[Auth] Router.replace did not navigate, using window.location.href')
-                }
-                window.location.href = cleanRedirectUrl
-              }
-            }, 200)
-          } catch (error) {
-            console.error('[Auth] ❌ Failed to redirect:', error)
-            // Final fallback
-            window.location.href = cleanRedirectUrl
-          }
+          // Use window.location.href for full page reload
+          // This ensures the cookie is sent with the request and middleware can read it
+          window.location.href = cleanRedirectUrl
         } else {
           router.replace(cleanRedirectUrl)
         }
-      }, 100) // Small delay to ensure everything is set
+      }, 300) // Increased delay to ensure cookie is fully set and synced
     } catch (error) {
       console.error('[Auth] Login error:', error)
       setState((prev) => ({ ...prev, isLoading: false }))
